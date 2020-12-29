@@ -1,0 +1,9 @@
+profile: dev
+
+# environments
+dev:
+  data_host: localhost
+  jwt_secret: secret to test
+prod:
+  data_host: ${DATABASE_URL}
+  jwt_secret: secret-${JWT_SECRET}

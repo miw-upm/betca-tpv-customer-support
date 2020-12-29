@@ -1,0 +1,12 @@
+pip~=20.3.3
+setuptools~=49.2.1
+DateTime~=4.3
+fastapi~=0.63.0
+pydantic~=1.7.3
+requests~=2.25.1
+uvicorn~=0.13.2
+starlette~=0.13.6
+pyjwt~=2.0.0
+mongoengine~=0.22.1
+mongomock~=3.21.0
+pyyaml~=5.3.1

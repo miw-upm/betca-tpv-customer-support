@@ -11,8 +11,7 @@ def create_app() -> FastAPI:
     return _app
 
 
-app = FastAPI(title='TPV', dependencies=[Depends(JWTBearer(["ADMIN", "MANAGER", "OPERATOR"]))])
-app.include_router(router)
+app = create_app()
 
 
 @app.exception_handler(Exception)

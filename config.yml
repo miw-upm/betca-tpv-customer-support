@@ -2,8 +2,12 @@ profile: dev
 
 # environments
 dev:
-  data_host: localhost
   jwt_secret: secret to test
+  data_host: localhost
+  tpv_user: http://localhost:8081
+  tpv_core: http://localhost:8082
 prod:
-  data_host: ${DATABASE_URL}
   jwt_secret: secret-${JWT_SECRET}
+  data_host: ${MONGODB_URI}
+  tpv_user: https://betca-tpv-user.herokuapp.com
+  tpv_core: https://betca-tpv-core.herokuapp.com

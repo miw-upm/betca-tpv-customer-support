@@ -1,7 +1,9 @@
 from mongoengine import Document, StringField, connect, DateTimeField, IntField
 
 # host='mongodb://admin:qwerty@localhost/production'
-connect('tpv_2')  # host: localhost, port: 27017, password:'', authentication_source=''
+from src.config import Config
+
+connect('tpv2', host=Config.data_host)  # host: localhost, port: 27017, password:'', authentication_source=''
 
 
 class MongoComplaint(Document):

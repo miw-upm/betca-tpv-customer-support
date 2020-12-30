@@ -7,7 +7,6 @@ from src.config import Config
 
 class JWTBearer(HTTPBearer):
     httpBearer: HTTPBearer
-    roles = []
 
     def __init__(self, roles: []):
         super(JWTBearer, self).__init__()

@@ -5,16 +5,20 @@ import yaml
 
 class Config:
     profile = ''
-    data_host = ''
     jwt_secret = ''
+    data_host = ''
+    tpv_user = ''
+    tpv_core = ''
 
 
 def __init_config():
     file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'config.yml')
     config_data = yaml.safe_load(open(file))
     Config.profile = config_data['profile']
-    Config.data_host = __read_environments(config_data[Config.profile]['data_host'])
     Config.jwt_secret = __read_environments(config_data[Config.profile]['jwt_secret'])
+    Config.data_host = __read_environments(config_data[Config.profile]['data_host'])
+    Config.tpv_user = __read_environments(config_data[Config.profile]['tpv_user'])
+    Config.tpv_core = __read_environments(config_data[Config.profile]['tpv_core'])
 
 
 def __read_environments(key) -> str:

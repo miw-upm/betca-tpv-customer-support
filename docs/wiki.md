@@ -79,7 +79,7 @@ Ejecución por código:
         
 Ejecución por consola:
 
-    > uvicorn customer_support.rest.main:app --reload
+    > uvicorn src.main:app --reload  --port:8083
     > http://localhost:8000/docs (openAPI)
 
 ### JWT

@@ -63,7 +63,7 @@ PEP 8 -- Style Guide for Python Code. https://www.python.org/dev/peps/pep-0008/
 > Standards-based: OpenAPI: http://localhost:8000/redoc   # openApi by ReDoc   
 
 Dependencias:
-* Starlette (Web). Starlette is a lightweight ASGI (Asynchronous Server Gateway Interface) framework/toolkit, which is ideal for building high performance asyncio services. https://www.starlette.io/
+* Starlette (Web). Starlette is a lightweight ASGI (Asynchronous Server Gateway Interface) framework/toolkit, which is ideal for building high performance async services. https://www.starlette.io/
 * Pydantic (data). Data validation and settings management using python type annotations. https://pydantic-docs.helpmanual.io/
 * uvicorn - for the server that loads and serves your application. Uvicorn is a lightning-fast ASGI server implementation, using uvloop and httptools. https://www.uvicorn.org/
 
@@ -79,7 +79,7 @@ Ejecución por código:
         
 Ejecución por consola:
 
-    > uvicorn src.main:app --reload  --port:8083
+    > uvicorn src.main:app --reload  --port 8083
     > http://localhost:8000/docs (openAPI)
 
 ### JWT

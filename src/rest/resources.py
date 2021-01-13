@@ -25,8 +25,8 @@ def read(ide: str):
 
 
 @router.put("/{ide}")
-def update(ide: str, complaint_creation: ModificationComplaint) -> Complaint:
-    return complaint_service.update(ide, complaint_creation)
+def update(ide: str, complaint_updating: ModificationComplaint) -> Complaint:
+    return complaint_service.update(ide, complaint_updating)
 
 
 @router.delete("/{ide}")

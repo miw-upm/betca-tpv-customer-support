@@ -1,4 +1,4 @@
-profile: dev
+profile: prod
 
 # environments
 dev:

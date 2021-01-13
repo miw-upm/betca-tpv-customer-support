@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="betca-tpv-customer-support",
-    version="4.0.0-SNAPSHOT",
+    version="4.0.0-Release",
     author="Jesus Bernal",
     author_email="j.bernal@upm.es",
     description="TPV",

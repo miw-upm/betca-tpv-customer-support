@@ -2,6 +2,7 @@ import unittest
 from http import HTTPStatus
 
 from fastapi.testclient import TestClient
+from mongoengine import disconnect, connect
 
 from src.domain.models import Complaint
 from src.main import app
@@ -16,6 +17,8 @@ class TestComplaintResource(unittest.TestCase):
         cls.bearer = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYmYiOjE2MTA2MzY2ODEsInJvbGUiOiJDVVNUT01FUiI" \
                      "sImlzcyI6ImVzLXVwbS11cG0iLCJuYW1lIjoiY3VzdG9tZXIiLCJleHAiOjE2MTA2NzI2ODEsImlhdCI6MTYxMDYzNj" \
                      "Y4MSwidXNlciI6IjY2In0.sDlkuw1oN2la6_-QQ-u8CMTvoRC2zPWKMXHfyRVesR8"
+        disconnect()
+        connect('mongoenginetest', host='mongomock://localhost')
 
     def test_search_exception(self):
         response = client.get("/complaints/search")

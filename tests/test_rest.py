@@ -29,7 +29,7 @@ class TestComplaintResource(unittest.TestCase):
             self.assertIsNotNone(Complaint(**complaint).mobile)
 
     def test_crud(self):
-        complaint = {"mobile": 66, "barcode": '33333', "description": '123456'}
+        complaint = {"barcode": '33333', "description": '123456'}
         response = client.post("/complaints", json=complaint, headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
         ide = response.json()['id']

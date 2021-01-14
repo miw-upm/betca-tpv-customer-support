@@ -1,14 +1,13 @@
-from fastapi import FastAPI, Depends, status, Request
+from fastapi import FastAPI, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
-from .rest.resources import router
-from .rest.security import JWTBearer
+from .rest.resources import complaints
 
 
 def create_app() -> FastAPI:
-    _app = FastAPI(title='TPV', dependencies=[Depends(JWTBearer(["CUSTOMER"]))])
-    _app.include_router(router)
+    _app = FastAPI(title='TPV')
+    _app.include_router(complaints)
     _app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -25,6 +24,6 @@ app = create_app()
 @app.exception_handler(Exception)
 async def unicorn_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
-        status_code=status.HTTP_404_NOT_FOUND,
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"message": str(exc)}
     )

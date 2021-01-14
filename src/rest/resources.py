@@ -1,34 +1,38 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from src.domain.complaint_service import complaint_service
 from src.domain.models import Complaint, ModificationComplaint
+from src.rest.security import JWTBearer
 
-router = APIRouter(
+customer = JWTBearer(["CUSTOMER"])
+
+complaints = APIRouter(
     prefix="/complaints",
     tags=["complaints"],
+    dependencies=[Depends(customer)]
 )
 
 
-@router.get("/search")
+@complaints.get("/search")
 def find():
-    return complaint_service.find()
+    return complaint_service.find(customer.customer['mobile'])
 
 
-@router.post("")
+@complaints.post("")
 def create(complaint_creation: ModificationComplaint) -> Complaint:
-    return complaint_service.create(complaint_creation)
+    return complaint_service.create(customer.customer['mobile'], complaint_creation)
 
 
-@router.get("/{ide}")
+@complaints.get("/{ide}")
 def read(ide: str):
-    return complaint_service.read(ide)
+    return complaint_service.read(customer.customer['mobile'], ide)
 
 
-@router.put("/{ide}")
+@complaints.put("/{ide}")
 def update(ide: str, complaint_updating: ModificationComplaint) -> Complaint:
-    return complaint_service.update(ide, complaint_updating)
+    return complaint_service.update(customer.customer['mobile'], ide, complaint_updating)
 
 
-@router.delete("/{ide}")
+@complaints.delete("/{ide}")
 def delete(ide: str):
-    return complaint_service.delete(ide)
+    return complaint_service.delete(customer.customer['mobile'], ide)

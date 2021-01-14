@@ -22,7 +22,7 @@ jobs:
       - name: Install Python dependencies
         uses: py-actions/py-dependency-install@v2
       - name: Test
-        run: python -m unittest discover tests
+        run: coverage run -m unittest discover tests
       - name: SonarCloud Scan
         if: success()
         uses: SonarSource/sonarcloud-github-action@v1.2 # file: sonar-project.properties

@@ -18,6 +18,3 @@ class TestService(unittest.TestCase):
         one = self.service.create(ModificationComplaint(mobile=123456, barcode='123456', description='123456'))
         self.assertIsNotNone(self.service.read(one.id))
 
-
-if __name__ == '__main__':
-    unittest.main()

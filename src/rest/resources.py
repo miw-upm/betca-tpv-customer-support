@@ -14,7 +14,7 @@ def find():
     return complaint_service.find()
 
 
-@router.post("/")
+@router.post("")
 def create(complaint_creation: ModificationComplaint) -> Complaint:
     return complaint_service.create(complaint_creation)
 

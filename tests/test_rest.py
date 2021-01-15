@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from mongoengine import disconnect, connect
 
 from src.config import Config
-from src.domain.models import Complaint
+from src.data.seeder_dev import delete_all_and_seed_database
 from src.main import app
 from src.rest.resources import COMPLAINTS
 
@@ -17,10 +17,11 @@ class TestComplaintResource(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.bearer = "Bearer " + jwt.encode({"user": "66", "name": "customer", "role": "CUSTOMER"},
+        cls.bearer = "Bearer " + jwt.encode({"user": "666666003", "name": "customer", "role": "CUSTOMER"},
                                             Config.jwt_secret, algorithm="HS256")
         disconnect()
         connect('mongoenginetest', host='mongomock://localhost')
+        delete_all_and_seed_database()
 
     def test_search_not_token_forbidden_exception(self):
         response = client.get(COMPLAINTS + "/search")
@@ -49,24 +50,36 @@ class TestComplaintResource(unittest.TestCase):
         response = client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
 
-    def test_search(self):
+    def __read_all(self):
         response = client.get(COMPLAINTS + "/search", headers={"Authorization": self.bearer})
-        self.assertEqual(HTTPStatus.OK, response.status_code)
-        for complaint in response.json():
-            self.assertIsNotNone(complaint['mobile'])
-            self.assertIsNotNone(Complaint(**complaint).mobile)
+        return response.json()
 
-    def test_crud(self):
-        complaint = {"barcode": '33333', "description": '123456'}
+    def test_search(self):
+        complaints = self.__read_all()
+        for complaint in complaints:
+            self.assertEqual(666666003, complaint['mobile'])  # Complaint(**complaint).mobile)
+
+    def test_create_delete(self):
+        complaint = {"barcode": "8400000000100", "description": "test"}
         response = client.post(COMPLAINTS, json=complaint, headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
         ide = response.json()['id']
+        response = client.delete(COMPLAINTS + "/" + ide, headers={"Authorization": self.bearer})
+        self.assertEqual(HTTPStatus.OK, response.status_code)
+
+    def test_read(self):
+        complaint = self.__read_all()[0]
+        ide = complaint['id']
         response = client.get(COMPLAINTS + "/" + ide, headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
         self.assertEqual(ide, response.json()['id'])
-        complaint['description'] = '654321'
+
+    def test_update(self):
+        complaint = self.__read_all()[0]
+        ide = complaint['id']
+        complaint['description'] = 'update'
         response = client.put(COMPLAINTS + "/" + ide, json=complaint, headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
-        self.assertEqual('654321', response.json()['description'])
-        response = client.delete(COMPLAINTS + "/" + ide, headers={"Authorization": self.bearer})
-        self.assertEqual(HTTPStatus.OK, response.status_code)
+        self.assertEqual('update', response.json()['description'])
+        complaint['description'] = '123456'
+        client.put(COMPLAINTS + "/" + ide, json=complaint, headers={"Authorization": self.bearer})

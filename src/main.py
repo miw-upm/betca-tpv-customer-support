@@ -4,6 +4,7 @@ from fastapi import FastAPI, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
+from .config import Config
 from .data.database import start_database
 from .rest.resources import complaints
 
@@ -11,6 +12,7 @@ from .rest.resources import complaints
 def create_app() -> FastAPI:
     logging.getLogger("uvicorn.error").propagate = False
     logging.getLogger().setLevel(logging.INFO)
+    logging.info("Configuring App... " + Config.profile)
     _app = FastAPI(title='TPV', debug=True)
     _app.include_router(complaints)
     _app.add_middleware(

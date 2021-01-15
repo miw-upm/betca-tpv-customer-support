@@ -7,6 +7,7 @@ from .rest.resources import complaints
 
 
 def create_app() -> FastAPI:
+    print("Creating App...")
     _app = FastAPI(title='TPV')
     _app.include_router(complaints)
     _app.add_middleware(
@@ -16,11 +17,11 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    start_database()
     return _app
 
 
 app = create_app()
-start_database()
 
 
 @app.exception_handler(Exception)

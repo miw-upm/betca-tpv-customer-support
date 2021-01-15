@@ -6,10 +6,11 @@
 `Python` `GitHub` `Sonarcloud` `Heroku`
 
 ## :gear: Ejecución en local
-1. Ejecutar el motor de MongoDB: `mongodb://localhost:27017/tpv2`
 1. Ejecutar en consola: `uvicorn src.main:app --reload  --port 8083`
 
-* Cliente Web (OpenAPI): `http://localhost:8083/docs`
+   * Ejecución de test por consola: `python -m unittest discover tests`
+   * Funciona con MongoDB embebido: `mongomock://localhost/tpv2`
+   * Cliente Web (OpenAPI): `http://localhost:8083/docs`
 
 ## :book: Documentación del proyecto
 [betca-tpv: Core](https://github.com/miw-upm/betca-tpv#back-end-core).

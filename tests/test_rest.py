@@ -3,14 +3,10 @@ from http import HTTPStatus
 
 import jwt
 from fastapi.testclient import TestClient
-from mongoengine import disconnect, connect
 
 from src.config import Config
-from src.data.seeder_dev import delete_all_and_seed_database
-from src.main import app
+from src.main import app, create_app
 from src.rest.resources import COMPLAINTS
-
-client = TestClient(app)
 
 
 class TestComplaintResource(unittest.TestCase):
@@ -19,39 +15,37 @@ class TestComplaintResource(unittest.TestCase):
     def setUpClass(cls):
         cls.bearer = "Bearer " + jwt.encode({"user": "666666003", "name": "customer", "role": "CUSTOMER"},
                                             Config.jwt_secret, algorithm="HS256")
-        disconnect()
-        connect('mongoenginetest', host='mongomock://localhost')
-        delete_all_and_seed_database()
+        cls.client = TestClient(app)
 
     def test_search_not_token_forbidden_exception(self):
-        response = client.get(COMPLAINTS + "/search")
+        response = self.client.get(COMPLAINTS + "/search")
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_code)
 
     def test_search_not_role_unauthorized_exception(self):
         bearer = "Bearer " + jwt.encode({"user": "66", "name": "customer", "role": "KK"},
                                         Config.jwt_secret, algorithm="HS256")
-        response = client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
+        response = self.client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_code)
 
     def test_search_invalid_token_unauthorized_exception(self):
         bearer = "Bearer kk" + jwt.encode({"user": "66", "name": "customer", "role": "CUSTOMER"},
                                           Config.jwt_secret, algorithm="HS256")
-        response = client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
+        response = self.client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
 
     def test_search_not_included_role_forbidden_exception(self):
         bearer = "Bearer " + jwt.encode({"user": "66", "name": "customer", }, Config.jwt_secret, algorithm="HS256")
-        response = client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
+        response = self.client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
 
     def test_search_expired_token_unauthorized_exception(self):
         bearer = "Bearer " + jwt.encode({"exp": 1371720939, "user": "66", "name": "customer", "role": "CUSTOMER"},
                                         Config.jwt_secret, algorithm="HS256")
-        response = client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
+        response = self.client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
 
     def __read_all(self):
-        response = client.get(COMPLAINTS + "/search", headers={"Authorization": self.bearer})
+        response = self.client.get(COMPLAINTS + "/search", headers={"Authorization": self.bearer})
         return response.json()
 
     def test_search(self):
@@ -61,16 +55,16 @@ class TestComplaintResource(unittest.TestCase):
 
     def test_create_delete(self):
         complaint = {"barcode": "8400000000100", "description": "test"}
-        response = client.post(COMPLAINTS, json=complaint, headers={"Authorization": self.bearer})
+        response = self.client.post(COMPLAINTS, json=complaint, headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
         ide = response.json()['id']
-        response = client.delete(COMPLAINTS + "/" + ide, headers={"Authorization": self.bearer})
+        response = self.client.delete(COMPLAINTS + "/" + ide, headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
 
     def test_read(self):
         complaint = self.__read_all()[0]
         ide = complaint['id']
-        response = client.get(COMPLAINTS + "/" + ide, headers={"Authorization": self.bearer})
+        response = self.client.get(COMPLAINTS + "/" + ide, headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
         self.assertEqual(ide, response.json()['id'])
 
@@ -78,8 +72,8 @@ class TestComplaintResource(unittest.TestCase):
         complaint = self.__read_all()[0]
         ide = complaint['id']
         complaint['description'] = 'update'
-        response = client.put(COMPLAINTS + "/" + ide, json=complaint, headers={"Authorization": self.bearer})
+        response = self.client.put(COMPLAINTS + "/" + ide, json=complaint, headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
         self.assertEqual('update', response.json()['description'])
         complaint['description'] = '123456'
-        client.put(COMPLAINTS + "/" + ide, json=complaint, headers={"Authorization": self.bearer})
+        self.client.put(COMPLAINTS + "/" + ide, json=complaint, headers={"Authorization": self.bearer})

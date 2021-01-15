@@ -1,9 +1,12 @@
 profile: dev
 
 # environments
-dev:
+debug:
   jwt_secret: secret to test
   data_host: localhost
+dev:
+  jwt_secret: secret to test
+  data_host: mongomock://localhost
   tpv_user: http://localhost:8081
   tpv_core: http://localhost:8082
 prod:

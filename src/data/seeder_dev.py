@@ -17,5 +17,5 @@ def delete_all_and_seed_database():
                        registration_date=datetime.now()),
     ]
     MongoComplaint.drop_collection()
-    print("seeder Database... Complaint")
+    print("Seeder Database... Complaint")
     MongoComplaint.objects.insert(complaints)

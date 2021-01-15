@@ -22,9 +22,32 @@ class TestComplaintResource(unittest.TestCase):
         disconnect()
         connect('mongoenginetest', host='mongomock://localhost')
 
-    def test_search_exception(self):
+    def test_search_not_token_forbidden_exception(self):
         response = client.get(COMPLAINTS + "/search")
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_code)
+
+    def test_search_not_role_unauthorized_exception(self):
+        bearer = "Bearer " + jwt.encode({"user": "66", "name": "customer", "role": "KK"},
+                                        Config.jwt_secret, algorithm="HS256")
+        response = client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
+        self.assertEqual(HTTPStatus.FORBIDDEN, response.status_code)
+
+    def test_search_invalid_token_unauthorized_exception(self):
+        bearer = "Bearer kk" + jwt.encode({"user": "66", "name": "customer", "role": "CUSTOMER"},
+                                          Config.jwt_secret, algorithm="HS256")
+        response = client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
+        self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
+
+    def test_search_not_included_role_forbidden_exception(self):
+        bearer = "Bearer " + jwt.encode({"user": "66", "name": "customer", }, Config.jwt_secret, algorithm="HS256")
+        response = client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
+        self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
+
+    def test_search_expired_token_unauthorized_exception(self):
+        bearer = "Bearer " + jwt.encode({"exp": 1371720939, "user": "66", "name": "customer", "role": "CUSTOMER"},
+                                        Config.jwt_secret, algorithm="HS256")
+        response = client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
+        self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
 
     def test_search(self):
         response = client.get(COMPLAINTS + "/search", headers={"Authorization": self.bearer})

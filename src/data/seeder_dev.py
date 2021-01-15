@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from src.data.documents import MongoComplaint
@@ -16,6 +17,7 @@ def delete_all_and_seed_database():
         MongoComplaint(mobile=666666005, barcode="8400000000048", description="123456",
                        registration_date=datetime.now()),
     ]
+    logging.info("Delete all and seed database... Complaint")
     MongoComplaint.drop_collection()
-    print("Seeder Database... Complaint")
+
     MongoComplaint.objects.insert(complaints)

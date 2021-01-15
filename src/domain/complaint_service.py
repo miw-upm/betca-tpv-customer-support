@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from src.data.documents import MongoComplaint
@@ -7,7 +8,7 @@ from .models import Complaint, ModificationComplaint
 class ComplaintService:
 
     def __init__(self):  # constructor
-        print('Creating a ComplaintService')
+        logging.info('Creating a ComplaintService')
 
     def find(self, mobile):
         complaints = []

@@ -6,8 +6,9 @@ from src.rest.security import JWTBearer
 
 customer = JWTBearer(["CUSTOMER"])
 
+COMPLAINTS = "/complaints"
 complaints = APIRouter(
-    prefix="/complaints",
+    prefix=COMPLAINTS,
     tags=["complaints"],
     dependencies=[Depends(customer)]
 )

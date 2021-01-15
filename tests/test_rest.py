@@ -1,5 +1,5 @@
-import unittest
 from http import HTTPStatus
+from unittest import TestCase, mock
 
 import jwt
 from fastapi.testclient import TestClient
@@ -9,7 +9,11 @@ from src.main import app, create_app
 from src.rest.resources import COMPLAINTS
 
 
-class TestComplaintResource(unittest.TestCase):
+def mock_article_existing(barcode):
+    print(">>>>>>>MOCK from article_existing, barcode:", barcode)
+
+
+class TestComplaintResource(TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -53,13 +57,15 @@ class TestComplaintResource(unittest.TestCase):
         for complaint in complaints:
             self.assertEqual(666666003, complaint['mobile'])  # Complaint(**complaint).mobile)
 
-    def test_create_delete(self):
+    @mock.patch('src.rest_client.core_api.ArticleApi.article_existing', side_effect=mock_article_existing)
+    def test_create_delete(self, article_existing):
         complaint = {"barcode": "8400000000100", "description": "test"}
         response = self.client.post(COMPLAINTS, json=complaint, headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
         ide = response.json()['id']
         response = self.client.delete(COMPLAINTS + "/" + ide, headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
+        article_existing.assert_called()  # article_existing.not_called()
 
     def test_read(self):
         complaint = self.__read_all()[0]

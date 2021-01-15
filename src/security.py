@@ -6,7 +6,7 @@ from src.config import Config
 
 
 class SecurityContext:
-    customer: dict = None
+    customer = None
 
 
 class JWTBearer(HTTPBearer):

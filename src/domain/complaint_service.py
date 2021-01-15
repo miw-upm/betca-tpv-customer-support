@@ -3,7 +3,7 @@ from datetime import datetime
 
 from src.data.documents import MongoComplaint
 from .models import Complaint, ModificationComplaint
-from ..rest_client.core_api import article_existing
+from ..rest_client.core_api import ArticleApi
 
 
 class ComplaintService:
@@ -18,7 +18,7 @@ class ComplaintService:
         return complaints
 
     def create(self, mobile, modification_complaint: ModificationComplaint):
-        article_existing(modification_complaint.barcode)
+        ArticleApi().article_existing(modification_complaint.barcode)
         mongo_complaint = MongoComplaint(**modification_complaint.dict())
         mongo_complaint.mobile = mobile
         mongo_complaint.registration_date = datetime.now()

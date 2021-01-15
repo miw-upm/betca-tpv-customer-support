@@ -2,6 +2,7 @@ from fastapi import FastAPI, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
+from .data.database import start_database
 from .rest.resources import complaints
 
 
@@ -19,6 +20,7 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
+start_database()
 
 
 @app.exception_handler(Exception)

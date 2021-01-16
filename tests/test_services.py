@@ -3,7 +3,7 @@ from unittest import TestCase, mock
 from mongoengine import disconnect
 
 from src.data.database import start_database
-from src.domain.complaint_service import complaint_service
+from src.domain import complaint_service
 from src.domain.models import ModificationComplaint
 
 

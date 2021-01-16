@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from src.domain.complaint_service import complaint_service
+from src.domain import complaint_service
 from src.domain.models import Complaint, ModificationComplaint
 from src.security import JWTBearer, SecurityContext
 
@@ -13,22 +13,22 @@ complaints = APIRouter(
 
 
 @complaints.get("/search")
-def find():
+def search():
     return complaint_service.find(SecurityContext.customer['mobile'])
 
 
 @complaints.post("")
-def create(complaint_creation: ModificationComplaint) -> Complaint:
+def post(complaint_creation: ModificationComplaint) -> Complaint:
     return complaint_service.create(SecurityContext.customer['mobile'], complaint_creation)
 
 
 @complaints.get("/{ide}")
-def read(ide: str):
+def get(ide: str):
     return complaint_service.read(SecurityContext.customer['mobile'], ide)
 
 
 @complaints.put("/{ide}")
-def update(ide: str, complaint_updating: ModificationComplaint) -> Complaint:
+def put(ide: str, complaint_updating: ModificationComplaint) -> Complaint:
     return complaint_service.update(SecurityContext.customer['mobile'], ide, complaint_updating)
 
 

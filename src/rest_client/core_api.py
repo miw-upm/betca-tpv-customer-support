@@ -8,7 +8,8 @@ from src.security import SecurityContext
 
 
 class ArticleApi:
-    def article_existing(self, barcode):
+    @staticmethod
+    def article_existing(barcode):
         print('>>>>>>>>>>article_existing', barcode)
         bearer = "Bearer " + SecurityContext.customer["token"]
         try:

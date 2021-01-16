@@ -1,36 +1,34 @@
 from datetime import datetime
 
-from src.data.documents import MongoComplaint
+from fastapi import HTTPException, status
+
 from .models import Complaint, ModificationComplaint
+from ..data import complaint_data
 from ..rest_client.core_api import ArticleApi
 
 
 def find(mobile):
-    complaints = []
-    for item in MongoComplaint.objects(mobile=mobile):
-        complaints.append(Complaint(**item.dict()))
-    return complaints
+    return complaint_data.find_by_mobile(mobile)
 
 
 def create(mobile, modification_complaint: ModificationComplaint):
     ArticleApi.article_existing(modification_complaint.barcode)
-    mongo_complaint = MongoComplaint(**modification_complaint.dict())
-    mongo_complaint.mobile = mobile
-    mongo_complaint.registration_date = datetime.now()
-    return Complaint(**mongo_complaint.save().dict())
+    complaint = Complaint(**modification_complaint.dict(), mobile=mobile, registration_date=datetime.now())
+    return complaint_data.create(complaint)
 
 
-def read(mobile, identifier: str):
-    mongo_complaint = MongoComplaint.objects(id=identifier, mobile=mobile).get()
-    return Complaint(**mongo_complaint.dict())
+def read(mobile, identifier):
+    complaint = complaint_data.read(identifier)
+    if mobile != complaint.mobile:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions for reading")
+    return complaint
 
 
-def update(mobile, identifier: str, modification_complaint: ModificationComplaint):
-    mongo_complaint = MongoComplaint.objects(id=identifier, mobile=mobile).get()
-    mongo_complaint.update(**modification_complaint.dict())
-    return read(mobile, identifier)
+def update(mobile, identifier, modification_complaint: ModificationComplaint):
+    complaint = read(mobile, identifier)
+    complaint.description = modification_complaint.description
+    return complaint_data.update(complaint)
 
 
-def delete(mobile, identifier: str):
-    MongoComplaint.objects(id=identifier, mobile=mobile).delete()
-    return None
+def delete(mobile, identifier):
+    complaint_data.delete(mobile, identifier)

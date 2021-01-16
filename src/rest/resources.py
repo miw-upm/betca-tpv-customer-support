@@ -12,26 +12,30 @@ complaints = APIRouter(
 )
 
 
+def mobile():
+    return int(SecurityContext.customer['mobile'])
+
+
 @complaints.get("/search")
 def search():
-    return complaint_service.find(SecurityContext.customer['mobile'])
+    return complaint_service.find(mobile())
 
 
 @complaints.post("")
 def post(complaint_creation: ModificationComplaint) -> Complaint:
-    return complaint_service.create(SecurityContext.customer['mobile'], complaint_creation)
+    return complaint_service.create(mobile(), complaint_creation)
 
 
 @complaints.get("/{ide}")
 def get(ide: str):
-    return complaint_service.read(SecurityContext.customer['mobile'], ide)
+    return complaint_service.read(mobile(), ide)
 
 
 @complaints.put("/{ide}")
 def put(ide: str, complaint_updating: ModificationComplaint) -> Complaint:
-    return complaint_service.update(SecurityContext.customer['mobile'], ide, complaint_updating)
+    return complaint_service.update(mobile(), ide, complaint_updating)
 
 
 @complaints.delete("/{ide}")
 def delete(ide: str):
-    return complaint_service.delete(SecurityContext.customer['mobile'], ide)
+    return complaint_service.delete(mobile(), ide)

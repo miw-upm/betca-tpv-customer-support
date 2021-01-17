@@ -7,7 +7,7 @@ from src.security import JWTBearer, SecurityContext
 COMPLAINTS = "/complaints"
 complaints = APIRouter(
     prefix=COMPLAINTS,
-    tags=["complaints"],
+    tags=["Complaints"],
     dependencies=[Depends(JWTBearer(["CUSTOMER"]))]
 )
 
@@ -22,17 +22,17 @@ def search():
 
 
 @complaints.post("")
-def post(complaint_creation: ModificationComplaint) -> Complaint:
+def create(complaint_creation: ModificationComplaint) -> Complaint:
     return complaint_service.create(mobile(), complaint_creation)
 
 
 @complaints.get("/{ide}")
-def get(ide: str):
+def read(ide: str):
     return complaint_service.read(mobile(), ide)
 
 
 @complaints.put("/{ide}")
-def put(ide: str, complaint_updating: ModificationComplaint) -> Complaint:
+def update(ide: str, complaint_updating: ModificationComplaint) -> Complaint:
     return complaint_service.update(mobile(), ide, complaint_updating)
 
 

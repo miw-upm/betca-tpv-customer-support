@@ -7,7 +7,7 @@ from src.config import Config
 from src.security import SecurityContext
 
 
-def article_existing(barcode):
+def assert_article_existing(barcode):
     bearer = "Bearer " + SecurityContext.customer["token"]
     try:
         response = get(Config.tpv_core + "/articles/" + barcode, headers={"Authorization": bearer})

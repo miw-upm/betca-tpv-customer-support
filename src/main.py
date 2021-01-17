@@ -4,9 +4,9 @@ from fastapi import FastAPI, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
+from .api.resources import complaints
 from .config import Config
-from .data.database import start_database, stop_database
-from .rest.resources import complaints
+from .data.database import start_database
 
 
 def create_app() -> FastAPI:
@@ -23,7 +23,6 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    logging.info("Creating App...")
     start_database()
     return _app
 

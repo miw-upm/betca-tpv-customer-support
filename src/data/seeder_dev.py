@@ -21,4 +21,3 @@ def delete_all_and_seed_database():
     ComplaintDocument.drop_collection()
 
     ComplaintDocument.objects.insert(complaints)
-

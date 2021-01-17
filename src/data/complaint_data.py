@@ -31,16 +31,20 @@ def create(complaint) -> Complaint:
     return Complaint(**complaint_document.dict())
 
 
-def read(identifier) -> Complaint:
+def read_assured(identifier):
     try:
-        complaint_document = ComplaintDocument.objects(id=identifier).get()
+        return ComplaintDocument.objects(id=identifier).get()
     except DoesNotExist:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found Complaint: " + identifier)
+
+
+def read(identifier) -> Complaint:
+    complaint_document = read_assured(identifier)
     return Complaint(**complaint_document.dict())
 
 
 def update(complaint) -> Complaint:
-    complaint_document = ComplaintDocument.objects(id=complaint.id).get()
+    complaint_document = read_assured(complaint.id)
     complaint_document.update(**complaint.dict())
     return read(complaint.id)
 

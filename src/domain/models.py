@@ -11,5 +11,5 @@ class ModificationComplaint(BaseModel):
 
 class Complaint(ModificationComplaint):
     id: Optional[str]
-    mobile: conint(gt=1)
+    mobile: conint(ge=0)
     registration_date: datetime.datetime

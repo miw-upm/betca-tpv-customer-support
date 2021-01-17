@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 
 from .models import Complaint, ModificationComplaint
 from ..data import complaint_data
-from ..rest_client.core_api import ArticleApi
+from ..rest_client.core_api import article_existing
 
 
 def find(mobile):
@@ -12,7 +12,7 @@ def find(mobile):
 
 
 def create(mobile, modification_complaint: ModificationComplaint):
-    ArticleApi.article_existing(modification_complaint.barcode)
+    article_existing(modification_complaint.barcode)
     complaint = Complaint(**modification_complaint.dict(), mobile=mobile, registration_date=datetime.now())
     return complaint_data.create(complaint)
 

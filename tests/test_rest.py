@@ -5,12 +5,8 @@ import jwt
 from fastapi.testclient import TestClient
 
 from src.config import Config
-from src.main import app, create_app
+from src.main import app
 from src.rest.resources import COMPLAINTS
-
-
-def mock_article_existing(barcode):
-    print(">>>>>>>MOCK from article_existing, barcode:", barcode)
 
 
 class TestComplaintResource(TestCase):
@@ -57,7 +53,7 @@ class TestComplaintResource(TestCase):
         for complaint in complaints:
             self.assertEqual(666666003, complaint['mobile'])  # Complaint(**complaint).mobile)
 
-    @mock.patch('src.rest_client.core_api.ArticleApi.article_existing', side_effect=mock_article_existing)
+    @mock.patch('src.domain.complaint_service.article_existing', return_value=None)
     def test_create_delete(self, article_existing):
         complaint = {"barcode": "8400000000100", "description": "test"}
         response = self.client.post(COMPLAINTS, json=complaint, headers={"Authorization": self.bearer})

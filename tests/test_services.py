@@ -14,7 +14,7 @@ class TestService(TestCase):
         disconnect()
         start_database()
 
-    @mock.patch('src.rest_client.core_api.ArticleApi.article_existing', return_value=None)
+    @mock.patch('src.domain.complaint_service.article_existing')  # nothing to do
     def test_created_read(self, article_existing):
         one = complaint_service.create(123456, ModificationComplaint(barcode='123456', description='123456'))
         self.assertIsNotNone(complaint_service.read(123456, one.id))

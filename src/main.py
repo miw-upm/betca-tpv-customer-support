@@ -1,7 +1,10 @@
 import logging
+from http.client import responses
 
 from fastapi import FastAPI, status, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
 
 from src.api.complaint_resource import complaints
@@ -30,9 +33,18 @@ def create_app() -> FastAPI:
 app = create_app()
 
 
-@app.exception_handler(Exception)
-async def unicorn_exception_handler(request: Request, exc: Exception):
+@app.exception_handler(HTTPException)
+async def unicorn_exception_handler(request: Request, exc: HTTPException):
     return JSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"message": str(request) + " - " + str(exc)}
+        status_code=exc.status_code,
+        content={"error": responses[exc.status_code], "message": exc.detail, "code": exc.status_code}
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"error": responses[status.HTTP_422_UNPROCESSABLE_ENTITY], "message":  str(exc.errors()),
+                 "code": status.HTTP_422_UNPROCESSABLE_ENTITY}
     )

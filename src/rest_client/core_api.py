@@ -3,14 +3,14 @@ from http import HTTPStatus
 from fastapi import HTTPException, status
 from requests import get
 
-from src.config import Config
+from src.config import config
 from src.security import SecurityContext
 
 
 def assert_article_existing(barcode):
     bearer = "Bearer " + SecurityContext.customer["token"]
     try:
-        response = get(Config.TPV_CORE + "/articles/" + barcode, headers={"Authorization": bearer})
+        response = get(config.TPV_CORE + "/articles/" + barcode, headers={"Authorization": bearer})
     except Exception:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY,
                             detail="Failed to establish a new connection: TPV-core")

@@ -9,5 +9,6 @@ requests~=2.25.1
 uvicorn~=0.13.2
 starlette~=0.13.6
 pyjwt~=2.0.0
+dnspython~=2.1.0
 mongoengine~=0.22.1
 mongomock~=3.21.0

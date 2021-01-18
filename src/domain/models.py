@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, conint, constr
@@ -12,4 +12,4 @@ class ModificationComplaint(BaseModel):
 class Complaint(ModificationComplaint):
     id: Optional[str]
     mobile: conint(ge=0)
-    registration_date: datetime.datetime
+    registration_date: datetime

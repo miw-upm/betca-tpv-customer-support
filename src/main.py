@@ -4,7 +4,7 @@ from fastapi import FastAPI, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
-from src.api.resources import complaints
+from src.api.complaint_resource import complaints
 from src.config import config
 from src.data.database import start_database
 

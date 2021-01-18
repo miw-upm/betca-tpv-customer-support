@@ -31,7 +31,7 @@ def create(complaint) -> Complaint:
     return Complaint(**complaint_document.dict())
 
 
-def read_assured(identifier):
+def __read_assured(identifier):
     try:
         return ComplaintDocument.objects(id=identifier).get()
     except DoesNotExist:
@@ -39,12 +39,12 @@ def read_assured(identifier):
 
 
 def read(identifier) -> Complaint:
-    complaint_document = read_assured(identifier)
+    complaint_document = __read_assured(identifier)
     return Complaint(**complaint_document.dict())
 
 
 def update(complaint) -> Complaint:
-    complaint_document = read_assured(complaint.id)
+    complaint_document = __read_assured(complaint.id)
     complaint_document.update(**complaint.dict())
     return read(complaint.id)
 

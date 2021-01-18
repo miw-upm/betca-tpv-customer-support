@@ -2,7 +2,7 @@ import jwt
 from fastapi import HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from src.config import Config
+from src.config import config
 
 
 class SecurityContext:
@@ -18,7 +18,7 @@ class JWTBearer(HTTPBearer):
     async def __call__(self, request: Request):
         credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
         try:
-            payload = jwt.decode(credentials.credentials, Config.jwt_secret, algorithms=["HS256"])
+            payload = jwt.decode(credentials.credentials, config.JWT_SECRET, algorithms=["HS256"])
             role: str = payload.get("role")
             if role is None:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Non Role")

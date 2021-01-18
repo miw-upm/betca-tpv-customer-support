@@ -2,9 +2,9 @@ from datetime import datetime
 
 from fastapi import HTTPException, status
 
-from .models import Complaint, ModificationComplaint
-from ..data import complaint_data
-from ..rest_client.core_api import assert_article_existing
+from src.domain.models import Complaint, ModificationComplaint
+from src.data import complaint_data
+from src.rest_client.core_api import assert_article_existing
 
 
 def find(mobile):

@@ -10,7 +10,7 @@ from src.security import SecurityContext
 def assert_article_existing(barcode):
     bearer = "Bearer " + SecurityContext.customer["token"]
     try:
-        response = get(Config.tpv_core + "/articles/" + barcode, headers={"Authorization": bearer})
+        response = get(Config.TPV_CORE + "/articles/" + barcode, headers={"Authorization": bearer})
     except Exception:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY,
                             detail="Failed to establish a new connection: TPV-core")

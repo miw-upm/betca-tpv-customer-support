@@ -5,7 +5,7 @@ import jwt
 from fastapi.testclient import TestClient
 
 from src.api.resources import COMPLAINTS
-from src.config import Config
+from src.config import config
 from src.main import app
 
 
@@ -14,7 +14,7 @@ class TestComplaintResource(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.bearer = "Bearer " + jwt.encode({"user": "666666003", "name": "customer", "role": "CUSTOMER"},
-                                            Config.jwt_secret, algorithm="HS256")
+                                            config.JWT_SECRET, algorithm="HS256")
         cls.client = TestClient(app)
 
     def test_search_not_token_forbidden_exception(self):
@@ -23,24 +23,24 @@ class TestComplaintResource(TestCase):
 
     def test_search_not_role_unauthorized_exception(self):
         bearer = "Bearer " + jwt.encode({"user": "66", "name": "customer", "role": "KK"},
-                                        Config.jwt_secret, algorithm="HS256")
+                                        config.JWT_SECRET, algorithm="HS256")
         response = self.client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_code)
 
     def test_search_invalid_token_unauthorized_exception(self):
         bearer = "Bearer kk" + jwt.encode({"user": "66", "name": "customer", "role": "CUSTOMER"},
-                                          Config.jwt_secret, algorithm="HS256")
+                                          config.JWT_SECRET, algorithm="HS256")
         response = self.client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
 
     def test_search_not_included_role_forbidden_exception(self):
-        bearer = "Bearer " + jwt.encode({"user": "66", "name": "customer", }, Config.jwt_secret, algorithm="HS256")
+        bearer = "Bearer " + jwt.encode({"user": "66", "name": "customer", }, config.JWT_SECRET, algorithm="HS256")
         response = self.client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
 
     def test_search_expired_token_unauthorized_exception(self):
         bearer = "Bearer " + jwt.encode({"exp": 1371720939, "user": "66", "name": "customer", "role": "CUSTOMER"},
-                                        Config.jwt_secret, algorithm="HS256")
+                                        config.JWT_SECRET, algorithm="HS256")
         response = self.client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
 
@@ -71,7 +71,7 @@ class TestComplaintResource(TestCase):
         complaint = self.__read_all()[0]
         ide = complaint['id']
         bearer = "Bearer " + jwt.encode({"user": "66", "name": "customer", "role": "CUSTOMER"},
-                                        Config.jwt_secret, algorithm="HS256")
+                                        config.JWT_SECRET, algorithm="HS256")
         response = self.client.get(COMPLAINTS + "/" + ide, headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_code)
 

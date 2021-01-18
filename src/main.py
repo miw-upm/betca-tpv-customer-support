@@ -4,15 +4,15 @@ from fastapi import FastAPI, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
-from .api.resources import complaints
-from .config import Config
-from .data.database import start_database
+from src.api.resources import complaints
+from src.config import config
+from src.data.database import start_database
 
 
 def create_app() -> FastAPI:
     logging.getLogger("uvicorn.error").propagate = False
     logging.getLogger().setLevel(logging.INFO)
-    logging.info("Configuration App: " + Config.profile)
+    logging.info("Configuration environment: " + config.ENVIRONMENT)
     logging.info("Creating App...")
     _app = FastAPI(title='TPV', debug=True)
     _app.include_router(complaints)
@@ -34,5 +34,5 @@ app = create_app()
 async def unicorn_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"message": str(exc)}
+        content={"message": str(request) + " - " + str(exc)}
     )

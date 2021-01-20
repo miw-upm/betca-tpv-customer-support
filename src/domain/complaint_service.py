@@ -11,9 +11,9 @@ def find(mobile):
     return complaint_data.find_by_mobile(mobile)
 
 
-def create(mobile, modification_complaint: ModificationComplaint):
-    assert_article_existing(modification_complaint.barcode)
-    complaint = Complaint(**modification_complaint.dict(), mobile=mobile, registration_date=datetime.now())
+def create(customer, modification_complaint: ModificationComplaint):
+    assert_article_existing(customer['token'], modification_complaint.barcode)
+    complaint = Complaint(**modification_complaint.dict(), mobile=customer['mobile'], registration_date=datetime.now())
     return complaint_data.create(complaint)
 
 
@@ -24,9 +24,9 @@ def read(mobile, identifier):
     return complaint
 
 
-def update(mobile, identifier, modification_complaint: ModificationComplaint):
-    complaint = read(mobile, identifier)
-    assert_article_existing(modification_complaint.barcode)
+def update(customer, identifier, modification_complaint: ModificationComplaint):
+    complaint = read(customer['mobile'], identifier)
+    assert_article_existing(customer['token'], modification_complaint.barcode)
     complaint.barcode = modification_complaint.barcode
     complaint.description = modification_complaint.description
     return complaint_data.update(complaint)

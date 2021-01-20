@@ -5,10 +5,6 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from src.config import config
 
 
-class SecurityContext:
-    customer = {"token": None, "mobile": None, "name": None, "role": None}
-
-
 class JWTBearer(HTTPBearer):
 
     def __init__(self, roles: []):
@@ -24,8 +20,9 @@ class JWTBearer(HTTPBearer):
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Non Role")
             if role not in self.roles:
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
-            SecurityContext.customer = {"token": credentials.credentials, "mobile": payload.get("user"),
-                                        "name": payload.get("name"), "role": role}
+            customer = {"token": credentials.credentials, "mobile": int(payload.get("user")),
+                        "name": payload.get("name"), "role": role}
+            return customer
         except jwt.DecodeError:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
         except jwt.ExpiredSignatureError:

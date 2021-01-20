@@ -4,11 +4,10 @@ from fastapi import HTTPException, status
 from requests import get
 
 from src.config import config
-from src.security import SecurityContext
 
 
-def assert_article_existing(barcode):
-    bearer = "Bearer " + SecurityContext.customer["token"]
+def assert_article_existing(token, barcode):
+    bearer = "Bearer " + token
     try:
         response = get(config.TPV_CORE + "/articles/" + barcode, headers={"Authorization": bearer})
     except Exception:

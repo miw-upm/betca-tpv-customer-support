@@ -16,6 +16,8 @@ class TestService(TestCase):
 
     @mock.patch('src.domain.complaint_service.assert_article_existing')  # nothing to do
     def test_created_read(self, mock_article_existing):
-        one = complaint_service.create(123456, ModificationComplaint(barcode='123456', description='123456'))
+        one = complaint_service.create(
+            {"mobile": 123456, "token": "mock"},
+            ModificationComplaint(barcode='123456', description='123456'))
         self.assertIsNotNone(complaint_service.read(123456, one.id))
         mock_article_existing.assert_called()

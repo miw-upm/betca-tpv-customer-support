@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from mongoengine import Document, StringField, DateTimeField, IntField, DoesNotExist
 
-from src.domain.models import Complaint
+from src.models.complaint import Complaint
 
 
 class ComplaintDocument(Document):

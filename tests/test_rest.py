@@ -55,7 +55,7 @@ class TestComplaintResource(TestCase):
         for complaint in complaints:
             self.assertEqual(666666003, complaint['mobile'])  # Complaint(**complaint).mobile)
 
-    @mock.patch('src.domain.complaint_service.assert_article_existing', return_value=None)
+    @mock.patch('src.services.complaint_service.assert_article_existing', return_value=None)
     def test_create_delete(self, mock_article_existing):
         complaint = {"barcode": "8400000000100", "description": "test"}
         response = self.client.post(COMPLAINTS, json=complaint, headers={"Authorization": self.bearer})
@@ -83,7 +83,7 @@ class TestComplaintResource(TestCase):
         self.assertEqual(HTTPStatus.OK, response.status_code)
         self.assertEqual(ide, response.json()['id'])
 
-    @mock.patch('src.domain.complaint_service.assert_article_existing', return_value=None)
+    @mock.patch('src.services.complaint_service.assert_article_existing', return_value=None)
     def test_update(self, mock_article_existing):
         complaint = self.__read_all()[0]
         ide = complaint['id']

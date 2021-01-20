@@ -2,8 +2,8 @@ from datetime import datetime
 
 from fastapi import HTTPException, status
 
-from src.domain.models import Complaint, ModificationComplaint
 from src.data import complaint_data
+from src.models.complaint import Complaint, ModificationComplaint
 from src.rest_client.core_api import assert_article_existing
 
 

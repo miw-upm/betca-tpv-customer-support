@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 
-from src.domain import complaint_service
-from src.domain.models import Complaint, ModificationComplaint
+from src.models.complaint import Complaint, ModificationComplaint
 from src.security import JWTBearer
+from src.services import complaint_service
 
 COMPLAINTS = "/complaints"
 complaints = APIRouter(

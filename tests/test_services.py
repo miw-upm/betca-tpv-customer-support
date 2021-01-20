@@ -3,8 +3,8 @@ from unittest import TestCase, mock
 from mongoengine import disconnect
 
 from src.data.database import start_database
-from src.domain import complaint_service
-from src.domain.models import ModificationComplaint
+from src.models.complaint import ModificationComplaint
+from src.services import complaint_service
 
 
 class TestService(TestCase):
@@ -14,7 +14,7 @@ class TestService(TestCase):
         disconnect()
         start_database()
 
-    @mock.patch('src.domain.complaint_service.assert_article_existing')  # nothing to do
+    @mock.patch('src.services.complaint_service.assert_article_existing')  # nothing to do
     def test_created_read(self, mock_article_existing):
         one = complaint_service.create(
             {"mobile": 123456, "token": "mock"},

@@ -2,9 +2,11 @@ from typing import Optional
 
 from pydantic import BaseModel, confloat
 
+from src.models.article import Article
+
 
 class EmptyReview(BaseModel):
-    articleBarcode: str
+    article: Article
 
 
 class CreationReview(EmptyReview):

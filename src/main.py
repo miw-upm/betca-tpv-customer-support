@@ -8,6 +8,7 @@ from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
 
 from src.api.complaint_resource import complaints
+from src.api.review_resource import reviews
 from src.config import config
 from src.data.database import start_database
 
@@ -19,6 +20,7 @@ def create_app() -> FastAPI:
     logging.info("Creating App...")
     _app = FastAPI(title='TPV', debug=True)
     _app.include_router(complaints)
+    _app.include_router(reviews)
     _app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

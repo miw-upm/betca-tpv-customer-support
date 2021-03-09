@@ -8,6 +8,7 @@ from src.api.complaint_resource import COMPLAINTS
 from src.api.review_resource import REVIEWS
 from src.config import config
 from src.main import app
+from src.models.article import Article
 from src.models.review import CreationReview, Review
 
 
@@ -134,14 +135,16 @@ class TestReviewResource(TestCase):
         return response.json()
 
     def test_create(self):
-        creation_review = CreationReview(articleBarcode="#0000001", score=1.5)
+        article = Article(barcode="#00000002", description="Mock most rated article", retailPrice=30)
+        creation_review = CreationReview(article=article, score=1.5)
         response = self.client.post(REVIEWS, json=creation_review.dict(), headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
-        self.assertEqual(creation_review.articleBarcode, response.json()['articleBarcode'])
+        self.assertEqual(creation_review.article.barcode, response.json()['article']['barcode'])
         self.assertEqual(creation_review.score, response.json()['score'])
 
     def test_update(self):
-        update_review = Review(id="000001", articleBarcode="#0000001", opinion="Test", score=1.5)
+        article = Article(barcode="#00000002", description="Mock most rated article", retailPrice=30)
+        update_review = Review(id="000001", article=article, opinion="Test", score=1.5)
         response = self.client.put(REVIEWS + "/" + update_review.id,
                                    json=update_review.dict(), headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
@@ -151,16 +154,6 @@ class TestReviewResource(TestCase):
         reviews = self.__read_all()
         for review in reviews:
             self.assertIsNotNone(review)
-
-    def test_exists(self):
-        ide = "5"
-        response = self.client.get(REVIEWS + "/exists/" + ide, headers={"Authorization": self.bearer})
-        self.assertEqual(HTTPStatus.OK, response.status_code)
-        self.assertEqual(False, response.json())
-        ide = "2"
-        response = self.client.get(REVIEWS + "/exists/" + ide, headers={"Authorization": self.bearer})
-        self.assertEqual(HTTPStatus.OK, response.status_code)
-        self.assertEqual(True, response.json())
 
     def test_top_articles(self):
         response = self.client.get(REVIEWS + "/topArticles")

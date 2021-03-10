@@ -53,7 +53,7 @@ class TestReviewResource(TestCase):
         return response.json()
 
     def test_create(self):
-        article = Article(barcode="#00000002", description="Mock most rated article", retailPrice=30)
+        article = Article(barcode="00000002", description="Mock most rated article", retailPrice=30)
         creation_review = CreationReview(article=article, score=1.5)
         response = self.client.post(REVIEWS, json=creation_review.dict(), headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
@@ -61,7 +61,7 @@ class TestReviewResource(TestCase):
         self.assertEqual(creation_review.score, response.json()['score'])
 
     def test_update(self):
-        article = Article(barcode="#00000002", description="Mock most rated article", retailPrice=30)
+        article = Article(barcode="00000002", description="Mock most rated article", retailPrice=30)
         update_review = Review(id="000001", article=article, opinion="Test", score=1.5)
         response = self.client.put(REVIEWS + "/" + update_review.id,
                                    json=update_review.dict(), headers={"Authorization": self.bearer})

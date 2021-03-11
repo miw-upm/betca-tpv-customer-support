@@ -35,7 +35,7 @@ def read(mobile, identifier):
     # review = review_data.read(identifier)
     # Mock, see if operating with correct dto
     review = None
-    for mock_review in mock_reviews:
+    for mock_review in [mock_reviews[0], mock_reviews[1], mock_reviews[2]]:
         if mock_review.id == identifier:
             review = mock_review.dict()
             review['mobile'] = mobile
@@ -48,8 +48,8 @@ def read(mobile, identifier):
 def update(customer, ide, review_updating: Review):
     review = read(customer['mobile'], ide)
     assert_article_existing(customer['token'], review_updating.article.barcode)
-    review.opinion = review_updating.opinion
-    review.score = review_updating.score
+    review['opinion'] = review_updating.opinion
+    review['score'] = review_updating.score
     return Review(id=review['id'], article=review_updating.article, score=review['score'], opinion=review['opinion'])
     # return review_data.update(review)
 

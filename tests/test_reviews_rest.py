@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from unittest import TestCase
+from unittest import TestCase, mock
 
 import jwt
 from fastapi.testclient import TestClient
@@ -8,7 +8,7 @@ from src.api.review_resource import REVIEWS
 from src.config import config
 from src.main import app
 from src.models.article import Article
-from src.models.review import CreationReview, Review
+from src.models.review import CreationReview
 
 
 def _bearer(**payload):
@@ -52,21 +52,28 @@ class TestReviewResource(TestCase):
         response = self.client.get(REVIEWS + "/search", headers={"Authorization": self.bearer})
         return response.json()
 
-    def test_create(self):
+    @mock.patch('src.services.review_service.assert_article_existing', return_value=None)
+    def test_create(self, mock_article_existing):
         article = Article(barcode="00000002", description="Mock most rated article", retailPrice=30)
         creation_review = CreationReview(article=article, score=1.5)
         response = self.client.post(REVIEWS, json=creation_review.dict(), headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
         self.assertEqual(creation_review.article.barcode, response.json()['article']['barcode'])
         self.assertEqual(creation_review.score, response.json()['score'])
+        mock_article_existing.assert_called()
 
-    def test_update(self):
-        article = Article(barcode="00000002", description="Mock most rated article", retailPrice=30)
-        update_review = Review(id="000001", article=article, opinion="Test", score=1.5)
-        response = self.client.put(REVIEWS + "/" + update_review.id,
-                                   json=update_review.dict(), headers={"Authorization": self.bearer})
+    @mock.patch('src.services.review_service.assert_article_existing', return_value=None)
+    def test_update(self, mock_article_existing):
+        update_review = self.__read_all()[0]
+        ide = update_review['id']
+        update_review['opinion'] = 'Changed'
+        update_review['score'] = 4.5
+        response = self.client.put(REVIEWS + "/" + ide,
+                                   json=update_review, headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
-        self.assertEqual('Test', response.json()['opinion'])
+        self.assertEqual('Changed', response.json()['opinion'])
+        self.assertEqual(4.5, response.json()['score'])
+        mock_article_existing.assert_called()
 
     def test_search(self):
         reviews = self.__read_all()

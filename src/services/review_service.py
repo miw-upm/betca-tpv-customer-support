@@ -1,8 +1,8 @@
 from fastapi import HTTPException, status
 
 from src.models.article import Article
-from src.models.review import DBReview, Review, EmptyReview
-from src.rest_client.core_api import assert_article_existing
+from src.models.review import DBReview, Review, EmptyReview, OutReview
+from src.rest_client.core_api import assert_article_existing_and_return
 
 mock_articles = [
     Article(barcode="8400000000017", description="Mock most rated article", retailPrice=30),
@@ -17,7 +17,13 @@ mock_articles = [
 mock_reviews = [
     Review(id="1", barcode=mock_articles[0].barcode, score=2.5, opinion="Is ok but not that much"),
     Review(id="2", barcode=mock_articles[1].barcode, score=5, opinion="Best product"),
-    Review(id="3", barcode=mock_articles[2].barcode, score=0.5, opinion="Really bad"),
+    Review(id="3", barcode=mock_articles[2].barcode, score=0.5, opinion="Really bad")
+]
+
+mock_out_reviews = [
+    OutReview(id="1", article=mock_articles[0], score=2.5, opinion="Is ok but not that much"),
+    OutReview(id="2", article=mock_articles[1], score=5, opinion="Best product"),
+    OutReview(id="3", article=mock_articles[2], score=0.5, opinion="Really bad"),
     EmptyReview(article=mock_articles[3]),
     EmptyReview(article=mock_articles[4]),
     EmptyReview(article=mock_articles[5]),
@@ -26,8 +32,8 @@ mock_reviews = [
 
 
 def create(customer, review_creation: Review):
-    assert_article_existing(customer['token'], review_creation.barcode)
-    return review_creation
+    article = assert_article_existing_and_return(customer['token'], review_creation.barcode)
+    return OutReview(**review_creation.dict(), article=article)
     # return review_data.create(review_creation)
 
 
@@ -35,7 +41,7 @@ def read(mobile, identifier):
     # review = review_data.read(identifier)
     # Mock, see if operating with correct dto
     review = None
-    for mock_review in [mock_reviews[0], mock_reviews[1], mock_reviews[2]]:
+    for mock_review in mock_reviews:
         if mock_review.id == identifier:
             review = DBReview(**mock_review.dict(), mobile=mobile)
 
@@ -46,10 +52,10 @@ def read(mobile, identifier):
 
 def update(customer, ide, review_updating: Review):
     db_review = read(customer['mobile'], ide)
-    assert_article_existing(customer['token'], review_updating.barcode)
+    article = assert_article_existing_and_return(customer['token'], review_updating.barcode)
     db_review.opinion = review_updating.opinion
     db_review.score = review_updating.score
-    return Review(**db_review.dict())
+    return OutReview(**db_review.dict(), article=article)
     # return review_data.update(db_review)
 
 
@@ -59,7 +65,7 @@ def find(mobile):
     # Third, delete all articles that already appear on Reviews
     # Fourth, create EmptyReviews attaching each article
     # Return collection
-    return mock_reviews
+    return mock_out_reviews
     # return review_data.find_by_mobile(mobile)
 
 

@@ -9,11 +9,18 @@ class EmptyReview(BaseModel):
     article: Article
 
 
-class Review(BaseModel):
+class BaseReview(BaseModel):
     id: Optional[str]
-    barcode: constr(strip_whitespace=True)
     score: confloat(gt=0, multiple_of=0.5)
     opinion: Optional[str]
+
+
+class Review(BaseReview):
+    barcode: constr(strip_whitespace=True)
+
+
+class OutReview(BaseReview):
+    article: Article
 
 
 class DBReview(Review):

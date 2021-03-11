@@ -1,12 +1,14 @@
+import json
 from http import HTTPStatus
 
 from fastapi import HTTPException, status
 from requests import get
 
 from src.config import config
+from src.models.article import Article
 
 
-def assert_article_existing(token, barcode):
+def assert_article_existing_and_return(token, barcode):
     bearer = "Bearer " + token
     try:
         response = get(config.TPV_CORE + "/articles/" + barcode, headers={"Authorization": bearer})
@@ -18,3 +20,4 @@ def assert_article_existing(token, barcode):
     elif HTTPStatus.OK != response.status_code:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="TPV-core does not work: " + barcode
                                                                             + '::' + str(response.status_code))
+    return Article(**response.json())

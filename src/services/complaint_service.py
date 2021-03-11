@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 
 from src.data import complaint_data
 from src.models.complaint import Complaint, ModificationComplaint
-from src.rest_client.core_api import assert_article_existing
+from src.rest_client.core_api import assert_article_existing_and_return
 
 
 def find(mobile):
@@ -12,7 +12,7 @@ def find(mobile):
 
 
 def create(customer, modification_complaint: ModificationComplaint):
-    assert_article_existing(customer['token'], modification_complaint.barcode)
+    assert_article_existing_and_return(customer['token'], modification_complaint.barcode)
     complaint = Complaint(**modification_complaint.dict(), mobile=customer['mobile'], registration_date=datetime.now())
     return complaint_data.create(complaint)
 
@@ -26,7 +26,7 @@ def read(mobile, identifier):
 
 def update(customer, identifier, modification_complaint: ModificationComplaint):
     complaint = read(customer['mobile'], identifier)
-    assert_article_existing(customer['token'], modification_complaint.barcode)
+    assert_article_existing_and_return(customer['token'], modification_complaint.barcode)
     complaint.barcode = modification_complaint.barcode
     complaint.description = modification_complaint.description
     return complaint_data.update(complaint)

@@ -7,8 +7,7 @@ from fastapi.testclient import TestClient
 from src.api.review_resource import REVIEWS
 from src.config import config
 from src.main import app
-from src.models.article import Article
-from src.models.review import CreationReview
+from src.models.review import Review
 
 
 def _bearer(**payload):
@@ -54,11 +53,10 @@ class TestReviewResource(TestCase):
 
     @mock.patch('src.services.review_service.assert_article_existing', return_value=None)
     def test_create(self, mock_article_existing):
-        article = Article(barcode="00000002", description="Mock most rated article", retailPrice=30)
-        creation_review = CreationReview(article=article, score=1.5)
+        creation_review = Review(barcode="00000002", score=1.5)
         response = self.client.post(REVIEWS, json=creation_review.dict(), headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
-        self.assertEqual(creation_review.article.barcode, response.json()['article']['barcode'])
+        self.assertEqual(creation_review.barcode, response.json()['barcode'])
         self.assertEqual(creation_review.score, response.json()['score'])
         mock_article_existing.assert_called()
 

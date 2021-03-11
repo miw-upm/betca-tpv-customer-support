@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 
-from src.models.review import Review, CreationReview
+from src.models.review import Review
 from src.security import JWTBearer
 from src.services import review_service
 
@@ -12,7 +12,7 @@ reviews = APIRouter(
 
 
 @reviews.post("")
-def create(review_creation: CreationReview, customer=Depends(JWTBearer(["CUSTOMER"]))) -> Review:
+def create(review_creation: Review, customer=Depends(JWTBearer(["CUSTOMER"]))) -> Review:
     return review_service.create(customer, review_creation)
 
 

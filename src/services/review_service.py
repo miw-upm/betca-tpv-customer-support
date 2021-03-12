@@ -2,7 +2,7 @@ from fastapi import HTTPException, status
 
 from src.models.article import Article
 from src.models.review import DBReview, Review, EmptyReview, OutReview
-from src.rest_client.core_api import assert_article_existing_and_return
+from src.rest_client.core_api import assert_article_existing_and_return, get_all_bought_articles
 
 mock_articles = [
     Article(barcode="8400000000017", description="Mock most rated article", retailPrice=30),
@@ -59,9 +59,10 @@ def update(customer, ide, review_updating: Review):
     # return review_data.update(db_review)
 
 
-def find(mobile):
+def find(customer):
     # First, find by mobile the Reviews
     # Second, find all articles that appears on tickets by mobile (query on another API)
+    articles = get_all_bought_articles(customer['token'], customer['mobile'])
     # Third, delete all articles that already appear on Reviews
     # Fourth, create EmptyReviews attaching each article
     # Return collection

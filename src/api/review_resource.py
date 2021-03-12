@@ -23,7 +23,7 @@ def update(ide: str, review_updating: Review, customer=Depends(JWTBearer(["CUSTO
 
 @reviews.get("/search")
 def search(customer=Depends(JWTBearer(["CUSTOMER"]))):
-    return review_service.find(customer['mobile'])
+    return review_service.find(customer)
 
 
 @reviews.get("/topArticles")

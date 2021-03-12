@@ -1,3 +1,4 @@
+import json
 from http import HTTPStatus
 from unittest import TestCase, mock
 
@@ -15,6 +16,12 @@ def _bearer(**payload):
     payload.setdefault("user", "666666003")
     payload.setdefault("name", "customer")
     return "Bearer " + jwt.encode(payload, config.JWT_SECRET, algorithm="HS256")
+
+
+def mock_articles():
+    return [Article(barcode="8400000000017", description="Mock most rated article", retailPrice=30),
+            Article(barcode="8400000000018", description="Mock", retailPrice=30),
+            Article(barcode="8400000000019", description="Mock 2", retailPrice=30)]
 
 
 class TestReviewResource(TestCase):
@@ -48,8 +55,11 @@ class TestReviewResource(TestCase):
         response = self.client.get(REVIEWS + "/search", headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
 
-    def __read_all(self):
-        response = self.client.get(REVIEWS + "/search", headers={"Authorization": self.bearer})
+    @mock.patch('src.services.review_service.get_all_bought_articles', side_effect=mock_articles())
+    def __read_all(self, get_all_bought_articles):
+        bearer = _bearer(user="66", role="CUSTOMER")
+        response = self.client.get(REVIEWS + "/search", headers={"Authorization": bearer})
+        get_all_bought_articles.assert_called()
         return response.json()
 
     @mock.patch('src.services.review_service.assert_article_existing_and_return',
@@ -70,8 +80,9 @@ class TestReviewResource(TestCase):
         ide = update_review.id
         update_review.opinion = 'Changed'
         update_review.score = 4.5
+        bearer = _bearer(user="66", role="CUSTOMER")
         response = self.client.put(REVIEWS + "/" + ide,
-                                   json=update_review.dict(), headers={"Authorization": self.bearer})
+                                   json=update_review.dict(), headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
         self.assertIsNotNone(response.json()['article'])
         self.assertEqual('Changed', response.json()['opinion'])

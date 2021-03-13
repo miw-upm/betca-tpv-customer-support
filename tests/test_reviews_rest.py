@@ -1,4 +1,3 @@
-import json
 from http import HTTPStatus
 from unittest import TestCase, mock
 
@@ -89,10 +88,13 @@ class TestReviewResource(TestCase):
         self.assertEqual(4.5, response.json()['score'])
         mock_article_existing_and_return.assert_called()
 
-    def test_search(self):
+    @mock.patch('src.services.review_service.assert_article_existing_and_return',
+                return_value=Article(barcode="8400000000017", description="Mock most rated article", retailPrice=30))
+    def test_search(self, assert_article_existing_and_return):
         reviews = self.__read_all()
         for review in reviews:
             self.assertIsNotNone(review)
+        assert_article_existing_and_return.assert_called()
 
     def test_top_articles(self):
         response = self.client.get(REVIEWS + "/topArticles")

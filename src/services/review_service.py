@@ -60,14 +60,23 @@ def update(customer, ide, review_updating: Review):
 
 
 def find(customer):
-    # First, find by mobile the Reviews
-    # Second, find all articles that appears on tickets by mobile (query on another API)
+    # reviews = review_data.find_by_mobile(mobile)
+    reviews = []
+    for review in mock_reviews:
+        article = assert_article_existing_and_return(customer['token'], review.barcode)
+        reviews.append(OutReview(**review.dict(), article=article))
+
     articles = get_all_bought_articles(customer['token'], customer['mobile'])
-    # Third, delete all articles that already appear on Reviews
-    # Fourth, create EmptyReviews attaching each article
-    # Return collection
-    return mock_out_reviews
-    # return review_data.find_by_mobile(mobile)
+
+    for review in reviews:
+        for article in articles:
+            if review.article.barcode == article.barcode:
+                articles.remove(article)
+
+    for article in articles:
+        reviews.append(EmptyReview(article=article))
+
+    return reviews
 
 
 def top_articles():

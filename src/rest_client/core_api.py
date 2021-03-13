@@ -38,7 +38,7 @@ def get_all_bought_articles(token, mobile):
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="TPV-core does not work: " + str(mobile)
                                                                             + '::' + str(response.status_code))
     json_response = response.json()
-    articles = [Article]
+    articles = []
     for json_article in json_response:
         articles.append(Article(**json_article))
     return articles

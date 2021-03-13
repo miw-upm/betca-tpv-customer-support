@@ -18,7 +18,7 @@ def _bearer(**payload):
     return "Bearer " + jwt.encode(payload, config.JWT_SECRET, algorithm="HS256")
 
 
-def mock_articles():
+def mock_articles(arg1, arg2) -> [Article]:
     return [Article(barcode="8400000000017", description="Mock most rated article", retailPrice=30),
             Article(barcode="8400000000018", description="Mock", retailPrice=30),
             Article(barcode="8400000000019", description="Mock 2", retailPrice=30)]
@@ -55,7 +55,7 @@ class TestReviewResource(TestCase):
         response = self.client.get(REVIEWS + "/search", headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
 
-    @mock.patch('src.services.review_service.get_all_bought_articles', side_effect=mock_articles())
+    @mock.patch('src.services.review_service.get_all_bought_articles', side_effect=mock_articles)
     def __read_all(self, get_all_bought_articles):
         bearer = _bearer(user="66", role="CUSTOMER")
         response = self.client.get(REVIEWS + "/search", headers={"Authorization": bearer})

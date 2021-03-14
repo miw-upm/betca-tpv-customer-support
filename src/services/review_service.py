@@ -32,7 +32,7 @@ def find(customer):
     reviews = review_data.find_by_mobile(customer['mobile'])
     reviews = list(map(lambda mod_review: __to_out_review(mod_review, customer['mobile']), reviews))
 
-    articles = get_all_bought_articles(customer['token'], customer['mobile'])
+    articles = get_all_bought_articles(customer['token'])
 
     for review in reviews:
         for article in articles:

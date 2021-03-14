@@ -17,7 +17,7 @@ def _bearer(**payload):
     return "Bearer " + jwt.encode(payload, config.JWT_SECRET, algorithm="HS256")
 
 
-def mock_articles(arg1, arg2) -> [Article]:
+def mock_articles(arg1) -> [Article]:
     return [Article(barcode="8400000000017", description="Mock most rated article", retailPrice=30),
             Article(barcode="8400000000018", description="Mock", retailPrice=30),
             Article(barcode="8400000000019", description="Mock 2", retailPrice=30)]

@@ -88,7 +88,9 @@ class TestReviewResource(TestCase):
 
     @mock.patch('src.services.review_service.assert_article_existing_and_return',
                 side_effect=mock_assert_article_existing_and_return)
-    def test_update(self, mock_article_existing_and_return):
+    @mock.patch('src.models.review.assert_article_existing_and_return',
+                side_effect=mock_assert_article_existing_and_return)
+    def test_update(self, mock_article_existing_and_return_service, mock_article_existing_and_return_model):
         review = self.__read_all()[0]
         update_review = Review(**review, barcode=review['article']['barcode'])
         ide = update_review.id
@@ -101,9 +103,10 @@ class TestReviewResource(TestCase):
         self.assertIsNotNone(response.json()['article'])
         self.assertEqual('Changed', response.json()['opinion'])
         self.assertEqual(4.5, response.json()['score'])
-        mock_article_existing_and_return.assert_called()
+        mock_article_existing_and_return_service.assert_called()
+        mock_article_existing_and_return_model.assert_called()
 
-    @mock.patch('src.services.review_service.assert_article_existing_and_return',
+    @mock.patch('src.models.review.assert_article_existing_and_return',
                 side_effect=mock_assert_article_existing_and_return)
     def test_search(self, assert_article_existing_and_return):
         reviews = self.__read_all()
@@ -120,6 +123,6 @@ class TestReviewResource(TestCase):
         for article in articles:
             self.assertIsNotNone(article)
         self.assertEqual("8400000000024", articles[0]['barcode'])
-        self.assertEqual("8400000000017", articles[1]['barcode'])
-        self.assertEqual("8400000000031", articles[2]['barcode'])
+        self.assertEqual("8400000000048", articles[1]['barcode'])
+        self.assertEqual("8400000000017", articles[2]['barcode'])
         assert_article_existing_and_return.assert_called()

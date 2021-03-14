@@ -3,6 +3,7 @@ from typing import Optional
 from pydantic import BaseModel, confloat, conint, constr
 
 from src.models.article import Article
+from src.rest_client.core_api import assert_article_existing_and_return
 
 
 class EmptyReview(BaseModel):
@@ -25,3 +26,8 @@ class OutReview(BaseReview):
 
 class DBReview(Review):
     mobile: conint(gt=0)
+
+
+def __to_out_review(review, token):
+    article = assert_article_existing_and_return(str(token), review.barcode)
+    return OutReview(**review.dict(), article=article)

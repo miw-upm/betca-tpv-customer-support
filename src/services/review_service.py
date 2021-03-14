@@ -1,59 +1,22 @@
 from fastapi import HTTPException, status
 
-from src.models.article import Article
-from src.models.review import DBReview, Review, EmptyReview, OutReview
+from src.data import review_data
+from src.models.review import DBReview, Review, EmptyReview, OutReview, __to_out_review
 from src.rest_client.core_api import assert_article_existing_and_return, get_all_bought_articles
-
-mock_articles = [
-    Article(barcode="8400000000017", description="Mock most rated article", retailPrice=30),
-    Article(barcode="8400000000024", description="Mock second most rated article", retailPrice=5, stock=15),
-    Article(barcode="8400000000031", description="Mock third most rated article", retailPrice=305),
-    Article(barcode="8400000000048", description="Nothing", retailPrice=305),
-    Article(barcode="8400000000055", description="Another article", retailPrice=305),
-    Article(barcode="8400000000079", description="Another of another article", retailPrice=305),
-    Article(barcode="8400000000086", description="Look at this article", retailPrice=305)
-]
-
-mock_reviews = [
-    Review(id="1", barcode=mock_articles[0].barcode, score=2.5, opinion="Is ok but not that much"),
-    Review(id="2", barcode=mock_articles[1].barcode, score=5, opinion="Best product"),
-    Review(id="3", barcode=mock_articles[2].barcode, score=0.5, opinion="Really bad"),
-    Review(id="4", barcode=mock_articles[0].barcode, score=4, opinion="Is ok but not that much"),
-    Review(id="5", barcode=mock_articles[0].barcode, score=3.5, opinion="Is ok but not that much"),
-    Review(id="6", barcode=mock_articles[1].barcode, score=4.5, opinion="Is ok but not that much")
-]
-
-mock_out_reviews = [
-    OutReview(id="1", article=mock_articles[0], score=2.5, opinion="Is ok but not that much"),
-    OutReview(id="2", article=mock_articles[1], score=5, opinion="Best product"),
-    OutReview(id="3", article=mock_articles[2], score=0.5, opinion="Really bad"),
-    OutReview(id="4", article=mock_articles[0], score=4, opinion="Is ok but not that much"),
-    OutReview(id="5", article=mock_articles[0], score=3.5, opinion="Is ok but not that much"),
-    OutReview(id="6", article=mock_articles[1], score=4.5, opinion="Is ok but not that much"),
-    EmptyReview(article=mock_articles[3]),
-    EmptyReview(article=mock_articles[4]),
-    EmptyReview(article=mock_articles[5]),
-    EmptyReview(article=mock_articles[6])
-]
 
 
 def create(customer, review_creation: Review):
     article = assert_article_existing_and_return(customer['token'], review_creation.barcode)
-    return OutReview(**review_creation.dict(), article=article)
-    # return review_data.create(review_creation)
+    out_review = review_data.create(DBReview(**review_creation.dict(), mobile=customer['mobile']))
+    return OutReview(**out_review.dict(), article=article)
 
 
 def read(mobile, identifier):
-    # review = review_data.read(identifier)
-    # Mock, see if operating with correct dto
-    review = None
-    for mock_review in mock_reviews:
-        if mock_review.id == identifier:
-            review = DBReview(**mock_review.dict(), mobile=mobile)
+    db_review = review_data.read(identifier)
 
-    if mobile != review.mobile:
+    if mobile != db_review.mobile:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions for other customer")
-    return review
+    return db_review
 
 
 def update(customer, ide, review_updating: Review):
@@ -61,16 +24,13 @@ def update(customer, ide, review_updating: Review):
     article = assert_article_existing_and_return(customer['token'], review_updating.barcode)
     db_review.opinion = review_updating.opinion
     db_review.score = review_updating.score
-    return OutReview(**db_review.dict(), article=article)
-    # return review_data.update(db_review)
+    updated_review = review_data.update(db_review)
+    return OutReview(**updated_review.dict(), article=article)
 
 
 def find(customer):
-    # reviews = review_data.find_by_mobile(mobile)
-    reviews = []
-    for review in mock_reviews:
-        article = assert_article_existing_and_return(customer['token'], review.barcode)
-        reviews.append(OutReview(**review.dict(), article=article))
+    reviews = review_data.find_by_mobile(customer['mobile'])
+    reviews = list(map(lambda mod_review: __to_out_review(mod_review, customer['mobile']), reviews))
 
     articles = get_all_bought_articles(customer['token'], customer['mobile'])
 
@@ -87,10 +47,7 @@ def find(customer):
 
 def top_articles(token):
     # First, recover each article with their reviews (ids)
-    # all_reviews = review_data.find_all()
-    all_reviews = []
-    for review in mock_reviews:
-        all_reviews.append(DBReview(**review.dict(), mobile="66"))
+    all_reviews = review_data.find_all()
 
     # Second, operate and store barcode - scores
     articles_score = []

@@ -17,13 +17,19 @@ mock_articles = [
 mock_reviews = [
     Review(id="1", barcode=mock_articles[0].barcode, score=2.5, opinion="Is ok but not that much"),
     Review(id="2", barcode=mock_articles[1].barcode, score=5, opinion="Best product"),
-    Review(id="3", barcode=mock_articles[2].barcode, score=0.5, opinion="Really bad")
+    Review(id="3", barcode=mock_articles[2].barcode, score=0.5, opinion="Really bad"),
+    Review(id="4", barcode=mock_articles[0].barcode, score=4, opinion="Is ok but not that much"),
+    Review(id="5", barcode=mock_articles[0].barcode, score=3.5, opinion="Is ok but not that much"),
+    Review(id="6", barcode=mock_articles[1].barcode, score=4.5, opinion="Is ok but not that much")
 ]
 
 mock_out_reviews = [
     OutReview(id="1", article=mock_articles[0], score=2.5, opinion="Is ok but not that much"),
     OutReview(id="2", article=mock_articles[1], score=5, opinion="Best product"),
     OutReview(id="3", article=mock_articles[2], score=0.5, opinion="Really bad"),
+    OutReview(id="4", article=mock_articles[0], score=4, opinion="Is ok but not that much"),
+    OutReview(id="5", article=mock_articles[0], score=3.5, opinion="Is ok but not that much"),
+    OutReview(id="6", article=mock_articles[1], score=4.5, opinion="Is ok but not that much"),
     EmptyReview(article=mock_articles[3]),
     EmptyReview(article=mock_articles[4]),
     EmptyReview(article=mock_articles[5]),
@@ -79,9 +85,48 @@ def find(customer):
     return reviews
 
 
-def top_articles():
+def top_articles(token):
     # First, recover each article with their reviews (ids)
-    # Second, operate and store votes - averageScore
-    # Third, sort list by an average of votes-score
+    # all_reviews = review_data.find_all()
+    all_reviews = []
+    for review in mock_reviews:
+        all_reviews.append(DBReview(**review.dict(), mobile="66"))
+
+    # Second, operate and store barcode - scores
+    articles_score = []
+    for review in all_reviews:
+        has_review = False
+        for article_score in articles_score:
+            if review.barcode in article_score.values():
+                article_score['scores'].append(review.score)
+                has_review = True
+        if not has_review:
+            articles_score.append({'article': review.barcode, 'scores': [review.score]})
+
+    # Third, sort list & sort by an average of votes-score
+    max_votes = len(max(articles_score, key=lambda article_score_inside: len(article_score_inside['scores']))['scores'])
+    articles_score.sort(reverse=True,
+                        key=lambda article_score_inside: weighted_sum_score_votes(article_score_inside, max_votes))
+
     # Return around 3 or 5 articles
-    return [mock_articles[0], mock_articles[1], mock_articles[2]]
+    articles_to_return = []
+    if len(articles_score) >= 3:
+        for i in range(3):
+            articles_to_return.append(assert_article_existing_and_return(token=token,
+                                                                         barcode=articles_score[i]['article']))
+    else:
+        for article_score in articles_score:
+            articles_to_return.append(
+                assert_article_existing_and_return(token=token, barcode=article_score['article']))
+
+    return articles_to_return
+
+
+def weighted_sum_score_votes(article_score, max_votes):
+    sum_scores = 0
+    for score in article_score['scores']:
+        sum_scores += score
+    num_votes = len(article_score['scores'])
+    medium_score = sum_scores / num_votes
+    medium_votes = (num_votes / max_votes) * 10 / 2
+    return medium_score * 0.7 + medium_votes * 0.3

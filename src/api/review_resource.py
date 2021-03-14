@@ -27,5 +27,6 @@ def search(customer=Depends(JWTBearer(["CUSTOMER"]))):
 
 
 @reviews.get("/topArticles")
-def top_articles():
-    return review_service.top_articles()
+def top_articles(customer=Depends(JWTBearer(["CUSTOMER"]))):
+    # It shouldn't need token. Needed because of assert_article_existing_and_return
+    return review_service.top_articles(customer['token'])

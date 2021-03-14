@@ -23,6 +23,21 @@ def mock_articles(arg1, arg2) -> [Article]:
             Article(barcode="8400000000019", description="Mock 2", retailPrice=30)]
 
 
+def mock_assert_article_existing_and_return(token, barcode) -> Article:
+    switcher = {
+        "8400000000017": Article(barcode="8400000000017", description="Mock most rated article", retailPrice=30),
+        "8400000000024": Article(barcode="8400000000024",
+                                 description="Mock second most rated article", retailPrice=5, stock=15),
+        "8400000000031": Article(barcode="8400000000031", description="Mock third most rated article", retailPrice=305),
+        "8400000000048": Article(barcode="8400000000048", description="Nothing", retailPrice=305),
+        "8400000000055": Article(barcode="8400000000055", description="Another article", retailPrice=305),
+        "8400000000079": Article(barcode="8400000000079", description="Another of another article", retailPrice=305),
+        "8400000000086": Article(barcode="8400000000086", description="Look at this article", retailPrice=305)
+    }
+    default_article = Article(barcode="8400000000017", description="Mock most rated article", retailPrice=30)
+    return switcher.get(barcode, default_article)
+
+
 class TestReviewResource(TestCase):
 
     @classmethod
@@ -62,9 +77,9 @@ class TestReviewResource(TestCase):
         return response.json()
 
     @mock.patch('src.services.review_service.assert_article_existing_and_return',
-                return_value=Article(barcode="00000002", description="Test", retailPrice=1.5))
+                side_effect=mock_assert_article_existing_and_return)
     def test_create(self, mock_article_existing_and_return):
-        creation_review = Review(barcode="00000002", score=1.5)
+        creation_review = Review(barcode="8400000000031", score=1.5)
         response = self.client.post(REVIEWS, json=creation_review.dict(), headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
         self.assertEqual(creation_review.barcode, response.json()['article']['barcode'])
@@ -72,7 +87,7 @@ class TestReviewResource(TestCase):
         mock_article_existing_and_return.assert_called()
 
     @mock.patch('src.services.review_service.assert_article_existing_and_return',
-                return_value=Article(barcode="8400000000017", description="Mock most rated article", retailPrice=30))
+                side_effect=mock_assert_article_existing_and_return)
     def test_update(self, mock_article_existing_and_return):
         review = self.__read_all()[0]
         update_review = Review(**review, barcode=review['article']['barcode'])
@@ -89,15 +104,22 @@ class TestReviewResource(TestCase):
         mock_article_existing_and_return.assert_called()
 
     @mock.patch('src.services.review_service.assert_article_existing_and_return',
-                return_value=Article(barcode="8400000000017", description="Mock most rated article", retailPrice=30))
+                side_effect=mock_assert_article_existing_and_return)
     def test_search(self, assert_article_existing_and_return):
         reviews = self.__read_all()
         for review in reviews:
             self.assertIsNotNone(review)
         assert_article_existing_and_return.assert_called()
 
-    def test_top_articles(self):
-        response = self.client.get(REVIEWS + "/topArticles")
+    @mock.patch('src.services.review_service.assert_article_existing_and_return',
+                side_effect=mock_assert_article_existing_and_return)
+    def test_top_articles(self, assert_article_existing_and_return):
+        response = self.client.get(REVIEWS + "/topArticles", headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
-        for article in response.json():
+        articles = response.json()
+        for article in articles:
             self.assertIsNotNone(article)
+        self.assertEqual("8400000000024", articles[0]['barcode'])
+        self.assertEqual("8400000000017", articles[1]['barcode'])
+        self.assertEqual("8400000000031", articles[2]['barcode'])
+        assert_article_existing_and_return.assert_called()

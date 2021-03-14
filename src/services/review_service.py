@@ -79,9 +79,43 @@ def find(customer):
     return reviews
 
 
-def top_articles():
+def top_articles(token):
     # First, recover each article with their reviews (ids)
+    # all_reviews = review_data.find_all()
+    all_reviews = []
+    for review in mock_reviews:
+        all_reviews.append(DBReview(**review.dict(), mobile="66"))
+
     # Second, operate and store votes - averageScore
+    articles_score = [dict()]
+    for review in all_reviews:
+        has_review = False
+        for article_score in articles_score:
+            if review.barcode in article_score.items():
+                article_score['scores'].append(review.score)
+                has_review = True
+
+        if not has_review:
+            articles_score.append({'article': review.barcode, 'scores': [review.score]})
+
     # Third, sort list by an average of votes-score
+    max_votes = max(articles_score, key=lambda article_score_inside: article_score_inside['scores'].count())
+    articles_score.sort(key=lambda article_score_inside: calc_medium_score(article_score_inside, max_votes))
+
     # Return around 3 or 5 articles
-    return [mock_articles[0], mock_articles[1], mock_articles[2]]
+    articles_to_return = []
+    for i in range(3):
+        articles_to_return.append(assert_article_existing_and_return(token=token, barcode=articles_score[i]['article']))
+    return articles_to_return
+
+
+def calc_medium_score(article_score, max_votes):
+    sum_scores = 0
+    for score in article_score['scores']:
+        sum_scores += score
+    num_votes = article_score['scores'].count()
+    medium_score = sum_scores / num_votes
+    weight_scores = 0.7
+    weight_votes = 0.3
+    # Falta por hacer relacionar num_votes y max_votes
+    return medium_score * weight_scores + num_votes * weight_votes

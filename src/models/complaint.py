@@ -13,3 +13,5 @@ class Complaint(ModificationComplaint):
     id: Optional[str]
     mobile: conint(ge=0)
     registration_date: datetime
+    opened: bool = True
+    reply: Optional[str]

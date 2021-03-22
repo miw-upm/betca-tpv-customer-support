@@ -11,6 +11,10 @@ def find(mobile):
     return complaint_data.find_by_mobile(mobile)
 
 
+def findAll():
+    return complaint_data.find()
+
+
 def create(customer, modification_complaint: ModificationComplaint):
     assert_article_existing_and_return(customer['token'], modification_complaint.barcode)
     complaint = Complaint(**modification_complaint.dict(), mobile=customer['mobile'], registration_date=datetime.now())

@@ -20,6 +20,13 @@ class ComplaintDocument(Document):
                 'registration_date': self.registration_date, 'opened': True, 'reply': self.reply}
 
 
+def find() -> [Complaint]:
+    complaints = []
+    for item in ComplaintDocument.objects():
+        complaints.append(Complaint(**item.dict()))
+    return complaints
+
+
 def find_by_mobile(mobile) -> [Complaint]:
     complaints = []
     for item in ComplaintDocument.objects(mobile=mobile):

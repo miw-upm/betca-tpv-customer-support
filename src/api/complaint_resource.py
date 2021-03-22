@@ -16,13 +16,21 @@ def search(customer=Depends(JWTBearer(["CUSTOMER"]))):
     return complaint_service.find(customer['mobile'])
 
 
+# TO DO permisos admin.... change in front call
+
+
+@complaints.get("/searchAll")
+def search(admin=Depends(JWTBearer(["ADMIN"]))):
+    return complaint_service.findAll()
+
+
 @complaints.post("")
 def create(complaint_creation: ModificationComplaint, customer=Depends(JWTBearer(["CUSTOMER"]))) -> Complaint:
     return complaint_service.create(customer, complaint_creation)
 
 
 @complaints.get("/{ide}")
-def read(ide: str, customer=Depends(JWTBearer(["CUSTOMER"]))):
+def read(ide: str, customer=Depends(JWTBearer(["CUSTOMER"])), admin=Depends(JWTBearer(["ADMIN"]))):
     return complaint_service.read(customer['mobile'], ide)
 
 

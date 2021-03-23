@@ -18,6 +18,6 @@ class TestService(TestCase):
     def test_created_read(self, mock_article_existing_and_return):
         one = complaint_service.create(
             {"mobile": 123456, "token": "mock"},
-            ModificationComplaint(barcode='123456', description='123456'))
+            ModificationComplaint(barcode='123456', description='123456', opened=True))
         self.assertIsNotNone(complaint_service.read(123456, one.id))
         mock_article_existing_and_return.assert_called()

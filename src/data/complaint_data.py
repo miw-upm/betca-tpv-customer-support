@@ -17,12 +17,19 @@ class ComplaintDocument(Document):
 
     def dict(self):
         return {'id': str(self.id), 'mobile': self.mobile, 'barcode': self.barcode, 'description': self.description,
-                'registration_date': self.registration_date, 'opened': True, 'reply': self.reply}
+                'registration_date': self.registration_date, 'opened': self.opened, 'reply': self.reply}
 
 
 def find() -> [Complaint]:
     complaints = []
     for item in ComplaintDocument.objects():
+        complaints.append(Complaint(**item.dict()))
+    return complaints
+
+
+def find_opened() -> [Complaint]:
+    complaints = []
+    for item in ComplaintDocument.objects(opened=True):
         complaints.append(Complaint(**item.dict()))
     return complaints
 

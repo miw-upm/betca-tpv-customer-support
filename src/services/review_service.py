@@ -2,7 +2,8 @@ from fastapi import HTTPException, status
 
 from src.data import review_data
 from src.models.review import DBReview, Review, EmptyReview, OutReview, __to_out_review
-from src.rest_client.core_api import assert_article_existing_and_return, get_all_bought_articles
+from src.rest_client.core_api import assert_article_existing_and_return, get_all_bought_articles, \
+    assert_article_existing_without_token
 
 
 def create(customer, review_creation: Review):
@@ -45,7 +46,7 @@ def find(customer):
     return reviews
 
 
-def top_articles(token):
+def top_articles():
     # First, recover each article with their reviews (ids)
     all_reviews = review_data.find_all()
 
@@ -69,12 +70,11 @@ def top_articles(token):
     articles_to_return = []
     if len(articles_score) >= 3:
         for i in range(3):
-            articles_to_return.append(assert_article_existing_and_return(token=token,
-                                                                         barcode=articles_score[i]['article']))
+            articles_to_return.append(assert_article_existing_without_token(barcode=articles_score[i]['article']))
     else:
         for article_score in articles_score:
             articles_to_return.append(
-                assert_article_existing_and_return(token=token, barcode=article_score['article']))
+                assert_article_existing_without_token(barcode=article_score['article']))
 
     return articles_to_return
 

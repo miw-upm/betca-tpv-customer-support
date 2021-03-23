@@ -38,6 +38,10 @@ def mock_assert_article_existing_and_return(token, barcode) -> Article:
     return switcher.get(barcode, default_article)
 
 
+def mock_assert_article_existing_without_token(barcode) -> Article:
+    return mock_assert_article_existing_and_return("", barcode)
+
+
 class TestReviewResource(TestCase):
 
     @classmethod
@@ -114,10 +118,10 @@ class TestReviewResource(TestCase):
             self.assertIsNotNone(review)
         assert_article_existing_and_return.assert_called()
 
-    @mock.patch('src.services.review_service.assert_article_existing_and_return',
-                side_effect=mock_assert_article_existing_and_return)
-    def test_top_articles(self, assert_article_existing_and_return):
-        response = self.client.get(REVIEWS + "/topArticles", headers={"Authorization": self.bearer})
+    @mock.patch('src.services.review_service.assert_article_existing_without_token',
+                side_effect=mock_assert_article_existing_without_token)
+    def test_top_articles(self, assert_article_existing_without_token):
+        response = self.client.get(REVIEWS + "/topArticles")
         self.assertEqual(HTTPStatus.OK, response.status_code)
         articles = response.json()
         for article in articles:
@@ -125,4 +129,4 @@ class TestReviewResource(TestCase):
         self.assertEqual("8400000000024", articles[0]['barcode'])
         self.assertEqual("8400000000048", articles[1]['barcode'])
         self.assertEqual("8400000000017", articles[2]['barcode'])
-        assert_article_existing_and_return.assert_called()
+        assert_article_existing_without_token.assert_called()

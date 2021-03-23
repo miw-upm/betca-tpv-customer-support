@@ -22,6 +22,20 @@ def assert_article_existing_and_return(token, barcode):
     return Article(**response.json())
 
 
+def assert_article_existing_without_token(barcode):
+    try:
+        response = get(config.TPV_CORE + "/articles/" + barcode)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY,
+                            detail="Failed to establish a new connection: TPV-core")
+    if HTTPStatus.NOT_FOUND == response.status_code:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="The barcode do not exist: " + barcode)
+    elif HTTPStatus.OK != response.status_code:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="TPV-core does not work: " + barcode
+                                                                            + '::' + str(response.status_code))
+    return Article(**response.json())
+
+
 def get_all_bought_articles(token):
     bearer = "Bearer " + token
     try:

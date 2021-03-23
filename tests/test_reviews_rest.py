@@ -17,6 +17,31 @@ def _bearer(**payload):
     return "Bearer " + jwt.encode(payload, config.JWT_SECRET, algorithm="HS256")
 
 
+def mock_articles(arg1) -> [Article]:
+    return [Article(barcode="8400000000017", description="Mock most rated article", retailPrice=30),
+            Article(barcode="8400000000018", description="Mock", retailPrice=30),
+            Article(barcode="8400000000019", description="Mock 2", retailPrice=30)]
+
+
+def mock_assert_article_existing_and_return(token, barcode) -> Article:
+    switcher = {
+        "8400000000017": Article(barcode="8400000000017", description="Mock most rated article", retailPrice=30),
+        "8400000000024": Article(barcode="8400000000024",
+                                 description="Mock second most rated article", retailPrice=5, stock=15),
+        "8400000000031": Article(barcode="8400000000031", description="Mock third most rated article", retailPrice=305),
+        "8400000000048": Article(barcode="8400000000048", description="Nothing", retailPrice=305),
+        "8400000000055": Article(barcode="8400000000055", description="Another article", retailPrice=305),
+        "8400000000079": Article(barcode="8400000000079", description="Another of another article", retailPrice=305),
+        "8400000000086": Article(barcode="8400000000086", description="Look at this article", retailPrice=305)
+    }
+    default_article = Article(barcode="8400000000017", description="Mock most rated article", retailPrice=30)
+    return switcher.get(barcode, default_article)
+
+
+def mock_assert_article_existing_without_token(barcode) -> Article:
+    return mock_assert_article_existing_and_return("", barcode)
+
+
 class TestReviewResource(TestCase):
 
     @classmethod
@@ -48,14 +73,17 @@ class TestReviewResource(TestCase):
         response = self.client.get(REVIEWS + "/search", headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
 
-    def __read_all(self):
-        response = self.client.get(REVIEWS + "/search", headers={"Authorization": self.bearer})
+    @mock.patch('src.services.review_service.get_all_bought_articles', side_effect=mock_articles)
+    def __read_all(self, get_all_bought_articles):
+        bearer = _bearer(user="66", role="CUSTOMER")
+        response = self.client.get(REVIEWS + "/search", headers={"Authorization": bearer})
+        get_all_bought_articles.assert_called()
         return response.json()
 
     @mock.patch('src.services.review_service.assert_article_existing_and_return',
-                return_value=Article(barcode="00000002", description="Test", retailPrice=1.5))
+                side_effect=mock_assert_article_existing_and_return)
     def test_create(self, mock_article_existing_and_return):
-        creation_review = Review(barcode="00000002", score=1.5)
+        creation_review = Review(barcode="8400000000031", score=1.5)
         response = self.client.post(REVIEWS, json=creation_review.dict(), headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
         self.assertEqual(creation_review.barcode, response.json()['article']['barcode'])
@@ -63,28 +91,42 @@ class TestReviewResource(TestCase):
         mock_article_existing_and_return.assert_called()
 
     @mock.patch('src.services.review_service.assert_article_existing_and_return',
-                return_value=Article(barcode="8400000000017", description="Mock most rated article", retailPrice=30))
-    def test_update(self, mock_article_existing_and_return):
+                side_effect=mock_assert_article_existing_and_return)
+    @mock.patch('src.models.review.assert_article_existing_and_return',
+                side_effect=mock_assert_article_existing_and_return)
+    def test_update(self, mock_article_existing_and_return_service, mock_article_existing_and_return_model):
         review = self.__read_all()[0]
         update_review = Review(**review, barcode=review['article']['barcode'])
         ide = update_review.id
         update_review.opinion = 'Changed'
         update_review.score = 4.5
+        bearer = _bearer(user="66", role="CUSTOMER")
         response = self.client.put(REVIEWS + "/" + ide,
-                                   json=update_review.dict(), headers={"Authorization": self.bearer})
+                                   json=update_review.dict(), headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
         self.assertIsNotNone(response.json()['article'])
         self.assertEqual('Changed', response.json()['opinion'])
         self.assertEqual(4.5, response.json()['score'])
-        mock_article_existing_and_return.assert_called()
+        mock_article_existing_and_return_service.assert_called()
+        mock_article_existing_and_return_model.assert_called()
 
-    def test_search(self):
+    @mock.patch('src.models.review.assert_article_existing_and_return',
+                side_effect=mock_assert_article_existing_and_return)
+    def test_search(self, assert_article_existing_and_return):
         reviews = self.__read_all()
         for review in reviews:
             self.assertIsNotNone(review)
+        assert_article_existing_and_return.assert_called()
 
-    def test_top_articles(self):
+    @mock.patch('src.services.review_service.assert_article_existing_without_token',
+                side_effect=mock_assert_article_existing_without_token)
+    def test_top_articles(self, assert_article_existing_without_token):
         response = self.client.get(REVIEWS + "/topArticles")
         self.assertEqual(HTTPStatus.OK, response.status_code)
-        for article in response.json():
+        articles = response.json()
+        for article in articles:
             self.assertIsNotNone(article)
+        self.assertEqual("8400000000024", articles[0]['barcode'])
+        self.assertEqual("8400000000048", articles[1]['barcode'])
+        self.assertEqual("8400000000017", articles[2]['barcode'])
+        assert_article_existing_without_token.assert_called()

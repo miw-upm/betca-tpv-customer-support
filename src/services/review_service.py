@@ -1,53 +1,23 @@
 from fastapi import HTTPException, status
 
-from src.models.article import Article
-from src.models.review import DBReview, Review, EmptyReview, OutReview
-from src.rest_client.core_api import assert_article_existing_and_return
-
-mock_articles = [
-    Article(barcode="8400000000017", description="Mock most rated article", retailPrice=30),
-    Article(barcode="8400000000024", description="Mock second most rated article", retailPrice=5, stock=15),
-    Article(barcode="8400000000031", description="Mock third most rated article", retailPrice=305),
-    Article(barcode="8400000000048", description="Nothing", retailPrice=305),
-    Article(barcode="8400000000055", description="Another article", retailPrice=305),
-    Article(barcode="8400000000079", description="Another of another article", retailPrice=305),
-    Article(barcode="8400000000086", description="Look at this article", retailPrice=305)
-]
-
-mock_reviews = [
-    Review(id="1", barcode=mock_articles[0].barcode, score=2.5, opinion="Is ok but not that much"),
-    Review(id="2", barcode=mock_articles[1].barcode, score=5, opinion="Best product"),
-    Review(id="3", barcode=mock_articles[2].barcode, score=0.5, opinion="Really bad")
-]
-
-mock_out_reviews = [
-    OutReview(id="1", article=mock_articles[0], score=2.5, opinion="Is ok but not that much"),
-    OutReview(id="2", article=mock_articles[1], score=5, opinion="Best product"),
-    OutReview(id="3", article=mock_articles[2], score=0.5, opinion="Really bad"),
-    EmptyReview(article=mock_articles[3]),
-    EmptyReview(article=mock_articles[4]),
-    EmptyReview(article=mock_articles[5]),
-    EmptyReview(article=mock_articles[6])
-]
+from src.data import review_data
+from src.models.review import DBReview, Review, EmptyReview, OutReview, __to_out_review
+from src.rest_client.core_api import assert_article_existing_and_return, get_all_bought_articles, \
+    assert_article_existing_without_token
 
 
 def create(customer, review_creation: Review):
     article = assert_article_existing_and_return(customer['token'], review_creation.barcode)
-    return OutReview(**review_creation.dict(), article=article)
-    # return review_data.create(review_creation)
+    out_review = review_data.create(DBReview(**review_creation.dict(), mobile=customer['mobile']))
+    return OutReview(**out_review.dict(), article=article)
 
 
 def read(mobile, identifier):
-    # review = review_data.read(identifier)
-    # Mock, see if operating with correct dto
-    review = None
-    for mock_review in mock_reviews:
-        if mock_review.id == identifier:
-            review = DBReview(**mock_review.dict(), mobile=mobile)
+    db_review = review_data.read(identifier)
 
-    if mobile != review.mobile:
+    if mobile != db_review.mobile:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions for other customer")
-    return review
+    return db_review
 
 
 def update(customer, ide, review_updating: Review):
@@ -55,23 +25,65 @@ def update(customer, ide, review_updating: Review):
     article = assert_article_existing_and_return(customer['token'], review_updating.barcode)
     db_review.opinion = review_updating.opinion
     db_review.score = review_updating.score
-    return OutReview(**db_review.dict(), article=article)
-    # return review_data.update(db_review)
+    updated_review = review_data.update(db_review)
+    return OutReview(**updated_review.dict(), article=article)
 
 
-def find(mobile):
-    # First, find by mobile the Reviews
-    # Second, find all articles that appears on tickets by mobile (query on another API)
-    # Third, delete all articles that already appear on Reviews
-    # Fourth, create EmptyReviews attaching each article
-    # Return collection
-    return mock_out_reviews
-    # return review_data.find_by_mobile(mobile)
+def find(customer):
+    reviews = review_data.find_by_mobile(customer['mobile'])
+    reviews = list(map(lambda mod_review: __to_out_review(mod_review, customer['mobile']), reviews))
+
+    articles = get_all_bought_articles(customer['token'])
+
+    for review in reviews:
+        for article in articles:
+            if review.article.barcode == article.barcode:
+                articles.remove(article)
+
+    for article in articles:
+        reviews.append(EmptyReview(article=article))
+
+    return reviews
 
 
 def top_articles():
     # First, recover each article with their reviews (ids)
-    # Second, operate and store votes - averageScore
-    # Third, sort list by an average of votes-score
+    all_reviews = review_data.find_all()
+
+    # Second, operate and store barcode - scores
+    articles_score = []
+    for review in all_reviews:
+        has_review = False
+        for article_score in articles_score:
+            if review.barcode in article_score.values():
+                article_score['scores'].append(review.score)
+                has_review = True
+        if not has_review:
+            articles_score.append({'article': review.barcode, 'scores': [review.score]})
+
+    # Third, sort list & sort by an average of votes-score
+    max_votes = len(max(articles_score, key=lambda article_score_inside: len(article_score_inside['scores']))['scores'])
+    articles_score.sort(reverse=True,
+                        key=lambda article_score_inside: weighted_sum_score_votes(article_score_inside, max_votes))
+
     # Return around 3 or 5 articles
-    return [mock_articles[0], mock_articles[1], mock_articles[2]]
+    articles_to_return = []
+    if len(articles_score) >= 3:
+        for i in range(3):
+            articles_to_return.append(assert_article_existing_without_token(barcode=articles_score[i]['article']))
+    else:
+        for article_score in articles_score:
+            articles_to_return.append(
+                assert_article_existing_without_token(barcode=article_score['article']))
+
+    return articles_to_return
+
+
+def weighted_sum_score_votes(article_score, max_votes):
+    sum_scores = 0
+    for score in article_score['scores']:
+        sum_scores += score
+    num_votes = len(article_score['scores'])
+    medium_score = sum_scores / num_votes
+    medium_votes = (num_votes / max_votes) * 10 / 2
+    return medium_score * 0.7 + medium_votes * 0.3

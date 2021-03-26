@@ -29,4 +29,4 @@ class TestService(TestCase):
         complaint = complaint_service.read(123456, "ADMIN", one.id)
         self.assertEqual('update', complaint.reply)
         self.assertFalse(complaint.opened)
-        mock_article_existing_and_return.assert_called()\
+        mock_article_existing_and_return.assert_called()

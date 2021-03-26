@@ -12,12 +12,12 @@ def find(mobile):
 
 
 def find_all(role):
-    if role != "CUSTOMER":
+    if role == "ADMIN":
         return complaint_data.find()
 
 
 def find_opened(role):
-    if role != "CUSTOMER":
+    if role == "ADMIN":
         return complaint_data.find_opened()
 
 
@@ -30,13 +30,11 @@ def create(customer, modification_complaint: ModificationComplaint):
 
 def read(mobile, role, identifier):
     complaint = complaint_data.read(identifier)
-    if role == 'ADMIN':
+    if (role == 'ADMIN') or (role == 'CUSTOMER' and mobile == complaint.mobile):
         return complaint
-    elif role == 'CUSTOMER':
-        if mobile != complaint.mobile:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                                detail="Not enough permissions for other customer")
-        return complaint
+    elif role == 'CUSTOMER' and mobile != complaint.mobile:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Not enough permissions for other customer")
     else:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions for read complaints")
 

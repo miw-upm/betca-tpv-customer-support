@@ -46,14 +46,25 @@ class TestComplaintResource(TestCase):
         response = self.client.get(COMPLAINTS + "/search", headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
 
-    def __read_all(self):
+    def __read_users(self):
         response = self.client.get(COMPLAINTS + "/search", headers={"Authorization": self.bearer})
         return response.json()
 
-    def test_search(self):
-        complaints = self.__read_all()
+    def test_search_user(self):
+        complaints = self.__read_users()
         for complaint in complaints:
-            self.assertEqual(666666003, complaint['mobile'])  # Complaint(**complaint).mobile)
+            self.assertEqual(666666003, complaint['mobile'])
+
+    def test_search(self):
+        response = self.client.get(COMPLAINTS + "/searchAll", headers={"Authorization": _bearer(role="ADMIN")})
+        complaints = response.json()
+        self.assertIsNotNone(complaints)
+
+    def test_search_opened(self):
+        response = self.client.get(COMPLAINTS + "/searchOpened", headers={"Authorization": _bearer(role="ADMIN")})
+        complaints = response.json()
+        for complaint in complaints:
+            self.assertTrue(complaint['opened'])
 
     @mock.patch('src.services.complaint_service.assert_article_existing_and_return', return_value=None)
     def test_create_delete(self, mock_article_existing_and_return):
@@ -70,14 +81,14 @@ class TestComplaintResource(TestCase):
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_code)
 
     def test_read_forbidden(self):
-        complaint = self.__read_all()[0]
+        complaint = self.__read_users()[0]
         ide = complaint['id']
         bearer = _bearer(user="66", role="CUSTOMER")
         response = self.client.get(COMPLAINTS + "/" + ide, headers={"Authorization": bearer})
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_code)
 
     def test_read(self):
-        complaint = self.__read_all()[0]
+        complaint = self.__read_users()[0]
         ide = complaint['id']
         response = self.client.get(COMPLAINTS + "/" + ide, headers={"Authorization": self.bearer})
         self.assertEqual(HTTPStatus.OK, response.status_code)
@@ -85,7 +96,7 @@ class TestComplaintResource(TestCase):
 
     @mock.patch('src.services.complaint_service.assert_article_existing_and_return', return_value=None)
     def test_update(self, mock_article_existing_and_return):
-        complaint = self.__read_all()[0]
+        complaint = self.__read_users()[0]
         ide = complaint['id']
         complaint['description'] = 'update'
         response = self.client.put(COMPLAINTS + "/" + ide, json=complaint, headers={"Authorization": self.bearer})

@@ -25,6 +25,7 @@ def search(admin=Depends(JWTBearer(["ADMIN"]))):
 def search(admin=Depends(JWTBearer(["ADMIN"]))):
     return complaint_service.find_opened(admin['role'])
 
+
 @complaints.post("")
 def create(complaint_creation: ModificationComplaint, customer=Depends(JWTBearer(["CUSTOMER"]))) -> Complaint:
     return complaint_service.create(customer, complaint_creation)

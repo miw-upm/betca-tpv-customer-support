@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from mongoengine import Document, StringField, DateTimeField, IntField, DoesNotExist
+from mongoengine import Document, StringField, DateTimeField, IntField, DoesNotExist, BooleanField
 
 from src.models.complaint import Complaint
 
@@ -9,13 +9,29 @@ class ComplaintDocument(Document):
     barcode = StringField(required=True)
     description = StringField(required=True)
     registration_date = DateTimeField()
+    opened = BooleanField(required=True)
+    reply = StringField()
 
     def __repr__(self):
         return str(self.dict())
 
     def dict(self):
         return {'id': str(self.id), 'mobile': self.mobile, 'barcode': self.barcode, 'description': self.description,
-                'registration_date': self.registration_date}
+                'registration_date': self.registration_date, 'opened': self.opened, 'reply': self.reply}
+
+
+def find() -> [Complaint]:
+    complaints = []
+    for item in ComplaintDocument.objects():
+        complaints.append(Complaint(**item.dict()))
+    return complaints
+
+
+def find_opened() -> [Complaint]:
+    complaints = []
+    for item in ComplaintDocument.objects(opened=True):
+        complaints.append(Complaint(**item.dict()))
+    return complaints
 
 
 def find_by_mobile(mobile) -> [Complaint]:

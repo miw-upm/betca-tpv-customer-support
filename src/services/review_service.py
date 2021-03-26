@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 
 from src.data import review_data
-from src.models.review import DBReview, Review, EmptyReview, OutReview, __to_out_review
+from src.models.review import DBReview, Review, EmptyReview, OutReview
 from src.rest_client.core_api import assert_article_existing_and_return, get_all_bought_articles, \
     assert_article_existing_without_token
 
@@ -46,11 +46,14 @@ def find(customer):
     return reviews
 
 
+def __to_out_review(review, token):
+    article = assert_article_existing_and_return(str(token), review.barcode)
+    return OutReview(**review.dict(), article=article)
+
+
 def top_articles():
-    # First, recover each article with their reviews (ids)
     all_reviews = review_data.find_all()
 
-    # Second, operate and store barcode - scores
     articles_score = []
     for review in all_reviews:
         has_review = False
@@ -61,12 +64,10 @@ def top_articles():
         if not has_review:
             articles_score.append({'article': review.barcode, 'scores': [review.score]})
 
-    # Third, sort list & sort by an average of votes-score
     max_votes = len(max(articles_score, key=lambda article_score_inside: len(article_score_inside['scores']))['scores'])
     articles_score.sort(reverse=True,
-                        key=lambda article_score_inside: weighted_sum_score_votes(article_score_inside, max_votes))
+                        key=lambda article_score_inside: __weighted_sum_score_votes(article_score_inside, max_votes))
 
-    # Return around 3 or 5 articles
     articles_to_return = []
     if len(articles_score) >= 3:
         for i in range(3):
@@ -79,7 +80,7 @@ def top_articles():
     return articles_to_return
 
 
-def weighted_sum_score_votes(article_score, max_votes):
+def __weighted_sum_score_votes(article_score, max_votes):
     sum_scores = 0
     for score in article_score['scores']:
         sum_scores += score

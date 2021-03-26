@@ -74,9 +74,12 @@ class TestReviewResource(TestCase):
         self.assertEqual(HTTPStatus.UNAUTHORIZED, response.status_code)
 
     @mock.patch('src.services.review_service.get_all_bought_articles', side_effect=mock_articles)
-    def __read_all(self, get_all_bought_articles):
+    @mock.patch('src.services.review_service.assert_article_existing_and_return',
+                side_effect=mock_assert_article_existing_and_return)
+    def __read_all(self, get_all_bought_articles, mock_article_existing_and_return):
         bearer = _bearer(user="66", role="CUSTOMER")
         response = self.client.get(REVIEWS + "/search", headers={"Authorization": bearer})
+        mock_article_existing_and_return.assert_called()
         get_all_bought_articles.assert_called()
         return response.json()
 
@@ -92,9 +95,7 @@ class TestReviewResource(TestCase):
 
     @mock.patch('src.services.review_service.assert_article_existing_and_return',
                 side_effect=mock_assert_article_existing_and_return)
-    @mock.patch('src.models.review.assert_article_existing_and_return',
-                side_effect=mock_assert_article_existing_and_return)
-    def test_update(self, mock_article_existing_and_return_service, mock_article_existing_and_return_model):
+    def test_update(self, mock_article_existing_and_return):
         review = self.__read_all()[0]
         update_review = Review(**review, barcode=review['article']['barcode'])
         ide = update_review.id
@@ -107,16 +108,12 @@ class TestReviewResource(TestCase):
         self.assertIsNotNone(response.json()['article'])
         self.assertEqual('Changed', response.json()['opinion'])
         self.assertEqual(4.5, response.json()['score'])
-        mock_article_existing_and_return_service.assert_called()
-        mock_article_existing_and_return_model.assert_called()
+        mock_article_existing_and_return.assert_called()
 
-    @mock.patch('src.models.review.assert_article_existing_and_return',
-                side_effect=mock_assert_article_existing_and_return)
-    def test_search(self, assert_article_existing_and_return):
+    def test_search(self):
         reviews = self.__read_all()
         for review in reviews:
             self.assertIsNotNone(review)
-        assert_article_existing_and_return.assert_called()
 
     @mock.patch('src.services.review_service.assert_article_existing_without_token',
                 side_effect=mock_assert_article_existing_without_token)
